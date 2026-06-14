@@ -1,0 +1,31 @@
+# Encodings y fotos de rostros (datos sensibles)
+encodings.pkl
+known_faces/
+
+# Scripts temporales
+fix_enc.py
+add_enc.py
+add_multi.py
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Variables de entorno
+.env
+.env.local
+
+# Docker volúmenes locales
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

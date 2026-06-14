@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Asistencia - Reconocimiento Facial</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://kit.fontawesome.com/64d58efce2.js" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/> -->
+    <link rel="stylesheet" href="../statics/css/style.css" />
+    <title>Ingreso</title>
+</head>
+
+<body>
+    <div class="container">
+        <div class="forms-container">
+            <div class="signin-signup">
+                <form class="sign-in-form">
+                    <div id="loginSection">
+                        <button id="btnIngresar" type="button" class="btn solid" onclick="ingresar()">
+                            Ingresar
+                        </button>
+                    </div>
+                    <div id="faceSection" style="display:none; width:100%; text-align:center;">
+                        <div style="position:relative; display:inline-block;">
+                            <video id="video" width="500" height="350" autoplay playsinline style="
+                                    border:5px solid #333;
+                                    border-radius:15px;
+                                    display:block;
+                                    transform:scaleX(-1);
+                                ">
+                            </video>
+                            <canvas id="overlay" width="500" height="350" style="
+                                    position:absolute;
+                                    top:0;
+                                    left:0;
+                                    pointer-events:none;
+                                    transform:scaleX(-1);
+                                ">
+                            </canvas>
+                        </div>
+                        <div id="status" class="status esperando" style="
+                                margin-top:15px;
+                                font-weight:600;
+                            ">
+                            👀 Esperando detección de rostro...
+                        </div>
+                        <br>
+                        <button type="button" class="btn" onclick="cerrarReconocimiento()">
+                            Cancelar
+                        </button>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="panels-container">
+        <div class="panel left-panel">
+            <div class="content">
+                <h3>Aplicativo</h3>
+                <p>
+                    Aplicativo de control de acceso Anthon
+                </p>
+            </div>
+            <img src="../statics/img/log.svg" class="image" alt="" />
+        </div>
+    </div>
+
+    <script src="../statics/js/login_movil.js"></script>
+
+</body>
+
+</html>
