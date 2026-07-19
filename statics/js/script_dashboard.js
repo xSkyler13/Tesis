@@ -1,3 +1,38 @@
+// DATETIME
+const timeEl = document.getElementById('time');
+const dateEl = document.getElementById('date');
+
+function updateDatetime() {
+	if(!timeEl || !dateEl) return;
+	const now = new Date();
+
+	timeEl.textContent = now.toLocaleTimeString('en-US', {
+		hour: '2-digit', minute: '2-digit', hour12: true
+	});
+
+	const day = now.getDate();
+	const month = now.toLocaleDateString('es-ES', { month: 'long' });
+	const year = now.getFullYear();
+	dateEl.textContent = `${day} de ${month.charAt(0).toUpperCase() + month.slice(1)}, ${year}`;
+}
+
+updateDatetime();
+setInterval(updateDatetime, 1000);
+
+// VISITANTES - AUTORIZAR / RECHAZAR
+document.querySelectorAll('.visitor-item').forEach(item => {
+	const btnAuthorize = item.querySelector('.btn-authorize');
+	const btnReject = item.querySelector('.btn-reject');
+
+	btnAuthorize.addEventListener('click', function () {
+		item.classList.add('resolved');
+	})
+
+	btnReject.addEventListener('click', function () {
+		item.classList.add('resolved');
+	})
+})
+
 // SIDEBAR DROPDOWN
 const allDropdown = document.querySelectorAll('#sidebar .side-dropdown');
 const sidebar = document.getElementById('sidebar');
@@ -24,6 +59,16 @@ allDropdown.forEach(item=> {
 
 
 
+
+// SIDEBAR ACTIVE LINK
+const allSideLinks = document.querySelectorAll('#sidebar .side-menu > li > a');
+
+allSideLinks.forEach(link => {
+	link.addEventListener('click', function (e) {
+		allSideLinks.forEach(l => l.classList.remove('active'));
+		this.classList.add('active');
+	})
+})
 
 // SIDEBAR COLLAPSE
 const toggleSidebar = document.querySelector('nav .toggle-sidebar');

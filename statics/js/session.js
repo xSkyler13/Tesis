@@ -37,6 +37,9 @@ function checkSession() {
     // Mostrar nombre de usuario si existe el elemento
     const el = document.getElementById('session-usuario');
     if (el) el.textContent = session.usuario;
+
+    const welcomeEl = document.getElementById('welcome-usuario');
+    if (welcomeEl) welcomeEl.textContent = session.usuario;
 }
 
 document.addEventListener('DOMContentLoaded', checkSession);
