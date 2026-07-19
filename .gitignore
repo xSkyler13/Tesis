@@ -26,6 +26,10 @@ npm-debug.log*
 # Docker volúmenes locales
 *.log
 
+# IDE / herramientas locales
+.claude/
+.vscode/
+
 # OS
 .DS_Store
 Thumbs.db
