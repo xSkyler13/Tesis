@@ -14,10 +14,13 @@ document.querySelector('.form_login').addEventListener('submit', async (e) => {
         const data = await response.json();
 
         if (data.success) {
+            localStorage.setItem('usuario', data.data.usuario);
+            localStorage.setItem('rol_id', data.data.rol_id);
+
             const rutas = {
                 1: '/home',
-                2: '/asistencia',
-                3: '/login_movil'
+                2: '/inicio',
+                3: '/asistencia'
             };
             const rol = data.data.rol_id;
             window.location.href = rutas[rol] ?? '/home';

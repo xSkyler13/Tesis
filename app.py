@@ -25,10 +25,6 @@ if len(fu.known_face_encodings) == 0:
 def register_page():
     return render_template('register.html')
 
-@app.route('/registerp')
-def register_page_plus():
-    return render_template('registerp.html')
-
 @app.route('/asistencia')
 def asistencia_page():
     return render_template('asistencia.html')
@@ -40,6 +36,10 @@ def login_movil_page():
 @app.route('/home')
 def home_page():
     return render_template('home.html')
+
+@app.route('/inicio')
+def inicio_page():
+    return render_template('Inicio.html')
 
 @app.route('/login')
 def login_page():

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Rostro - Tesis</title>
+    <style>
+        body {font-family: Arial; text-align: center; background: #f4f4f4;}
+        video, canvas {border: 5px solid #333; border-radius: 12px; margin: 20px auto; display: block;}
+        canvas {display: none;}
+        .message {margin: 20px; font-size: 20px; font-weight: bold;}
+    </style>
+</head>
+<body>
+    <h1>📸 Registro de Nuevo Usuario</h1>
+
+    <video id="video" width="640" height="480" autoplay playsinline></video>
+    <canvas id="canvas" width="640" height="480"></canvas>
+
+    <br>
+    <input type="text" id="name" placeholder="Nombre completo (Ej: Anderson)"
+           style="padding:12px; width:400px; font-size:18px;">
+    <br><br>
+    <button id="captureBtn" style="padding:15px 40px; font-size:20px;">
+        📸 Capturar y Registrar
+    </button>
+
+    <div id="message" class="message"></div>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const btn = document.getElementById('captureBtn');
+        const msg = document.getElementById('message');
+        const nameInput = document.getElementById('name');
+
+        // Cámara del navegador
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => { video.srcObject = stream; })
+            .catch(() => { msg.innerHTML = "❌ No se pudo acceder a la cámara"; });
+
+        btn.addEventListener('click', () => {
+            if (!nameInput.value.trim()) {
+                msg.innerHTML = "⚠️ Ingresa un nombre";
+                return;
+            }
+            msg.innerHTML = "📸 Capturando...";
+
+            // Capturar frame actual del video al canvas
+            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+            const image = canvas.toDataURL('image/jpeg');
+
+            const formData = new FormData();
+            formData.append('name', nameInput.value.trim());
+            formData.append('image', image);
+
+            fetch('/save_face', { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(data => { msg.innerHTML = data.message; })
+                .catch(() => { msg.innerHTML = "❌ Error al registrar"; });
+        });
+    </script>
+</body>
+</html>

@@ -6,6 +6,15 @@ const statusDiv = document.getElementById('status');
 let stream = null;
 let busy = false;
 let approvedUntil = 0;
+let unknownCapturedUntil = 0;
+let accessRegisteredUntil = 0;
+
+function registrarAcceso(usuario, resultado) {
+    const fd = new FormData();
+    fd.append('usuario', usuario);
+    fd.append('resultado', resultado);
+    fetch('http://localhost:8000/templates/api_acceso.php', { method: 'POST', body: fd }).catch(() => {});
+}
 
 const grab = document.createElement('canvas');
 grab.width = 500;
@@ -82,6 +91,10 @@ async function tick() {
                 <br>
                 <small> Acceso concedido </small>`;
                 approvedUntil = Date.now() + 4000;
+                if (Date.now() > accessRegisteredUntil) {
+                    accessRegisteredUntil = Date.now() + 5000;
+                    registrarAcceso(data.name, 'APROBADO');
+                }
                 setTimeout(() => {
                     cerrarReconocimiento();
                 }, 4000);
@@ -98,6 +111,16 @@ async function tick() {
                 drawBoxes(data.faces, "#dc3545");
                 statusDiv.className = "status denegado";
                 statusDiv.innerHTML = "❌ Persona no registrada";
+                if (Date.now() > unknownCapturedUntil) {
+                    unknownCapturedUntil = Date.now() + 10000;
+                    const fotoFd = new FormData();
+                    fotoFd.append('foto_base64', image);
+                    fetch('http://localhost:8000/templates/api_unknown_face.php', {
+                        method: 'POST',
+                        body: fotoFd
+                    }).catch(() => {});
+                    registrarAcceso('desconocido', 'DENEGADO');
+                }
                 break;
             default:
                 octx.clearRect(0, 0, overlay.width, overlay.height);
