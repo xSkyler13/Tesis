@@ -9,66 +9,11 @@
 </head>
 <body>
 	
-	<!-- SIDEBAR -->
-	<section id="sidebar">
-		<a href="#" class="brand"><i class='bx bxs-buildings icon'></i> Anthon Dev</a>
-		<ul class="side-menu">
-			<li><a href="#" class="active"><i class='bx bxs-dashboard icon' ></i> Panel de Control</a></li>
-			<li class="divider" data-text="main">Main</li>
-			<li>
-				<a href="#"><i class='bx bxs-inbox icon' ></i> Registros <i class='bx bx-chevron-right icon-right' ></i></a>
-				<ul class="side-dropdown">
-					<li><a href="#">Alert</a></li>
-					<li><a href="#">Badges</a></li>
-					<li><a href="#">Breadcrumbs</a></li>
-					<li><a href="#">Button</a></li>
-				</ul>
-			</li>
-			<li><a href="#"><i class='bx bxs-chart icon' ></i> Edificios</a></li>
-			<li><a href="#"><i class='bx bxs-widget icon' ></i> Departamentos</a></li>
-			<li class="divider" data-text="table and forms">Table and forms</li>
-			<li><a href="#"><i class='bx bx-table icon' ></i> Propietarios</a></li>
-			<li>
-				<a href="#"><i class='bx bxs-notepad icon' ></i> Ocupantes <i class='bx bx-chevron-right icon-right' ></i></a>
-				<ul class="side-dropdown">
-					<li><a href="#">Basic</a></li>
-					<li><a href="#">Select</a></li>
-					<li><a href="#">Checkbox</a></li>
-					<li><a href="#">Radio</a></li>
-				</ul>
-			</li>
-		</ul>
-	</section>
-	<!-- SIDEBAR -->
+	{% include 'partials/sidebar.html' %}
 
 	<!-- NAVBAR -->
 	<section id="content">
-		<!-- NAVBAR -->
-		<nav>
-			<i class='bx bx-menu toggle-sidebar' ></i>
-			<div class="welcome-msg">
-				<p class="welcome-title"><i class='bx bxs-hand icon'></i> Bienvenido, <span id="welcome-usuario">Agente</span></p>
-				<p class="welcome-sub">Aquí tienes un resumen de la actividad del condominio</p>
-			</div>
-			<div class="nav-link datetime">
-				<span id="time"></span>
-				<span id="date"></span>
-			</div>
-			<a href="#" class="nav-link">
-				<i class='bx bxs-bell icon' ></i>
-				<span class="badge">5</span>
-			</a>
-			<span class="divider"></span>
-			<div class="profile">
-				<img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?ixid=MnwxMjA3fDB8MHxzZWFyY2h8NHx8cGVvcGxlfGVufDB8fDB8fA%3D%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" alt="">
-				<ul class="profile-link">
-					<li><a href="#"><i class='bx bxs-user-circle icon' ></i> <span id="session-usuario"></span></a></li>
-					<li><a href="#"><i class='bx bxs-cog' ></i> Settings</a></li>
-					<li><a href="#" onclick="logout(); return false;"><i class='bx bxs-log-out-circle' ></i> Logout</a></li>
-				</ul>
-			</div>
-		</nav>
-		<!-- NAVBAR -->
+		{% include 'partials/navbar.html' %}
 
 		<!-- MAIN -->
 		<main>
@@ -84,44 +29,40 @@
 						<span class="stat-card-icon green"><i class='bx bx-door-open'></i></span>
 						<div>
 							<p class="stat-card-title">Accesos Hoy</p>
-							<h2>325</h2>
+							<h2 id="stat-accesos-hoy">--</h2>
 						</div>
 					</div>
 					<p class="stat-card-sub">Ingresos registrados</p>
-					<span class="stat-card-change up">↑ 12% <small>vs ayer</small></span>
 				</div>
 				<div class="card stat-card">
 					<div class="stat-card-head">
 						<span class="stat-card-icon blue"><i class='bx bx-group'></i></span>
 						<div>
 							<p class="stat-card-title">Residentes Dentro</p>
-							<h2>184</h2>
+							<h2 id="stat-residentes-dentro">--</h2>
 						</div>
 					</div>
 					<p class="stat-card-sub">Actualmente en el condominio</p>
-					<span class="stat-card-change up">↑ 8% <small>vs ayer</small></span>
 				</div>
 				<div class="card stat-card">
 					<div class="stat-card-head">
 						<span class="stat-card-icon purple"><i class='bx bx-user'></i></span>
 						<div>
 							<p class="stat-card-title">Visitas Activas</p>
-							<h2>23</h2>
+							<h2 id="stat-visitas-activas">--</h2>
 						</div>
 					</div>
-					<p class="stat-card-sub">Visitantes registrados</p>
-					<span class="stat-card-change up">↑ 5% <small>vs ayer</small></span>
+					<p class="stat-card-sub">Pendientes de autorización</p>
 				</div>
 				<div class="card stat-card">
 					<div class="stat-card-head">
 						<span class="stat-card-icon red"><i class='bx bx-error'></i></span>
 						<div>
 							<p class="stat-card-title">Alertas</p>
-							<h2>4</h2>
+							<h2 id="stat-alertas-hoy">--</h2>
 						</div>
 					</div>
 					<p class="stat-card-sub">Requieren atención</p>
-					<span class="stat-card-change down">↑ 33% <small>vs ayer</small></span>
 				</div>
 			</div>
 			<div class="data">
@@ -130,82 +71,26 @@
 						<h3>Accesos en tiempo real</h3>
 						<a href="#" class="link-action">Ver todo</a>
 					</div>
-					<ul class="access-list">
-						<li class="access-item">
-							<div class="access-row">
-								<span class="status-icon success"><i class='bx bx-check'></i></span>
-								<span class="access-time">08:43 PM</span>
-								<img class="avatar" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&q=60" alt="">
-								<div class="access-info">
-									<p class="access-name">Luis Pérez</p>
-									<span class="access-sub">Torre B - Dep 504</span>
-								</div>
-								<span class="badge-status success">Ingresó</span>
-							</div>
-						</li>
-						<li class="access-item">
-							<div class="access-row">
-								<span class="status-icon success"><i class='bx bx-check'></i></span>
-								<span class="access-time">08:41 PM</span>
-								<img class="avatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&q=60" alt="">
-								<div class="access-info">
-									<p class="access-name">María Torres</p>
-									<span class="access-sub">Torre A - Dep 301</span>
-								</div>
-								<span class="badge-status info">Salió</span>
-							</div>
-						</li>
-						<li class="access-item">
-							<div class="access-row">
-								<span class="status-icon warning"><i class='bx bx-error'></i></span>
-								<span class="access-time">08:39 PM</span>
-								<span class="avatar avatar-placeholder"><i class='bx bx-user'></i></span>
-								<div class="access-info">
-									<p class="access-name">Visitante sin autorización</p>
-									<span class="access-sub">Intentó ingresar por puerta principal</span>
-								</div>
-								<span class="badge-status warning">Alerta</span>
-							</div>
-						</li>
-						<li class="access-item">
-							<div class="access-row">
-								<span class="status-icon success"><i class='bx bx-check'></i></span>
-								<span class="access-time">08:37 PM</span>
-								<span class="avatar avatar-placeholder"><i class='bx bx-car'></i></span>
-								<div class="access-info">
-									<p class="access-name">Vehículo ABC-123</p>
-									<span class="access-sub">Residente - Torre C</span>
-								</div>
-								<span class="badge-status success">Ingresó</span>
-							</div>
-						</li>
-						<li class="access-item">
-							<div class="access-row">
-								<span class="status-icon success"><i class='bx bx-check'></i></span>
-								<span class="access-time">08:35 PM</span>
-								<img class="avatar" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&q=60" alt="">
-								<div class="access-info">
-									<p class="access-name">Juan Rodríguez</p>
-									<span class="access-sub">Torre D - Dep 1202</span>
-								</div>
-								<span class="badge-status success">Ingresó</span>
-							</div>
-						</li>
+					<ul class="access-list" id="lista-accesos-tiempo-real">
+						<li class="access-item"><p class="table-empty">Cargando...</p></li>
 					</ul>
 				</div>
 				<div class="content-data">
 					<div class="head">
-						<h3>Accesos por hora (Hoy)</h3>
-						<select class="range-select">
-							<option>Hoy</option>
-							<option>Esta semana</option>
-							<option>Este mes</option>
-						</select>
+						<h3><i class='bx bx-camera icon'></i> Reconocimiento en Vivo</h3>
 					</div>
-					<div class="chart">
-						<div id="chart"></div>
+					<div class="camera-widget">
+						<div class="camera-frame" id="camera-frame">
+							<video id="home-video" width="500" height="350" autoplay playsinline muted></video>
+							<canvas id="home-overlay" width="500" height="350"></canvas>
+							<div class="camera-off" id="camera-off">
+								<i class='bx bx-camera-off'></i>
+								<button type="button" class="btn-save" id="btn-camara-iniciar"><i class='bx bx-power-off'></i> Iniciar Cámara</button>
+							</div>
+						</div>
+						<div id="camera-status" class="camera-status esperando">👀 Esperando detección de rostro...</div>
 					</div>
-					<div class="access-stats">
+					<!-- <div class="access-stats">
 						<div class="stat-box success">
 							<span class="stat-icon"><i class='bx bx-log-in-circle'></i></span>
 							<div>
@@ -220,59 +105,15 @@
 								<p class="stat-value">298</p>
 							</div>
 						</div>
-					</div>
+					</div> -->
 				</div>
 				<div class="content-data">
 					<div class="head">
 						<h3>Visitas pendientes</h3>
-						<a href="#" class="link-action">Ver todas</a>
+						<a href="./visita" class="link-action">Registrar visita</a>
 					</div>
-					<ul class="visitor-list">
-						<li class="visitor-item">
-							<img class="avatar" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&q=60" alt="">
-							<div class="visitor-info">
-								<p class="visitor-name">Juan Gómez</p>
-								<span class="visitor-detail">Visita a: Carlos Díaz - Torre C Dep 302</span>
-							</div>
-							<div class="visitor-meta">
-								<span class="visitor-time">08:45 PM</span>
-								<span class="visitor-day">Hoy</span>
-							</div>
-							<div class="visitor-actions">
-								<button class="btn-authorize"><i class='bx bx-check'></i> Autorizar</button>
-								<button class="btn-reject"><i class='bx bx-x'></i> Denegar</button>
-							</div>
-						</li>
-						<li class="visitor-item">
-							<img class="avatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&q=60" alt="">
-							<div class="visitor-info">
-								<p class="visitor-name">Ana Morales</p>
-								<span class="visitor-detail">Visita a: María López - Torre A Dep 201</span>
-							</div>
-							<div class="visitor-meta">
-								<span class="visitor-time">08:42 PM</span>
-								<span class="visitor-day">Hoy</span>
-							</div>
-							<div class="visitor-actions">
-								<button class="btn-authorize"><i class='bx bx-check'></i> Autorizar</button>
-								<button class="btn-reject"><i class='bx bx-x'></i> Denegar</button>
-							</div>
-						</li>
-						<li class="visitor-item">
-							<img class="avatar" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&q=60" alt="">
-							<div class="visitor-info">
-								<p class="visitor-name">Pedro Sánchez</p>
-								<span class="visitor-detail">Visita a: Luis Ramírez - Torre B Dep 501</span>
-							</div>
-							<div class="visitor-meta">
-								<span class="visitor-time">08:40 PM</span>
-								<span class="visitor-day">Hoy</span>
-							</div>
-							<div class="visitor-actions">
-								<button class="btn-authorize"><i class='bx bx-check'></i> Autorizar</button>
-								<button class="btn-reject"><i class='bx bx-x'></i> Denegar</button>
-							</div>
-						</li>
+					<ul class="visitor-list" id="lista-visitas-pendientes">
+						<li class="visitor-item"><p class="table-empty">Cargando...</p></li>
 					</ul>
 				</div>
 			</div>
@@ -284,5 +125,7 @@
 	<script src="../statics/js/apexcharts.min.js"></script>
 	<script src="../statics/js/session.js"></script>
 	<script src="../statics/js/script_dashboard.js"></script>
+	<script src="../statics/js/home_camera.js"></script>
+	<script src="../statics/js/api_home_dashboard.js"></script>
 </body>
 </html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href='../statics/css/boxicons.min.css' rel='stylesheet'>
+	<link rel="stylesheet" href="../statics/css/style_dashboard.css">
+	<title>Residentes</title>
+</head>
+<body>
+
+	{% include 'partials/sidebar.html' %}
+
+	<!-- NAVBAR -->
+	<section id="content">
+		{% include 'partials/navbar.html' %}
+
+		<!-- MAIN -->
+		<main>
+			<div class="page-head">
+				<div>
+					<h1 class="title">Residentes</h1>
+					<ul class="breadcrumbs">
+						<li><a href="#">Registros</a></li>
+						<li class="divider">/</li>
+						<li><a href="#" class="active">Residentes</a></li>
+					</ul>
+				</div>
+				<div class="form-footer-right">
+					<a href="./propietario" class="btn-primary"><i class='bx bx-plus'></i> Nuevo Residente</a>
+				</div>
+			</div>
+
+			<div class="form-row">
+				<div class="content-data form-card">
+					<div class="head"><h3><i class='bx bx-filter-alt icon'></i> Filtros de Búsqueda</h3></div>
+					<div class="form-grid">
+						<div class="field">
+							<label for="f-estado">Estado</label>
+							<select id="f-estado">
+								<option value="">Todos</option>
+								<option value="Activo">Activo</option>
+								<option value="Inactivo">Inactivo</option>
+							</select>
+						</div>
+						<div class="field">
+							<label for="f-tipo">Tipo de Residente</label>
+							<select id="f-tipo">
+								<option value="">Todos</option>
+							</select>
+						</div>
+					</div>
+					<div class="filtros-actions">
+						<button type="button" class="btn-reset" id="btn-limpiar-filtros"><i class='bx bx-reset'></i> Limpiar</button>
+						<button type="button" class="btn-save" id="btn-buscar"><i class='bx bx-search'></i> Buscar</button>
+					</div>
+				</div>
+			</div>
+
+			<div class="content-data form-card">
+				<div class="head">
+					<h3>Lista de Residentes Registrados</h3>
+					<div class="list-head-actions">
+						<div class="input-icon">
+							<i class='bx bx-search'></i>
+							<input type="text" id="f-buscar" placeholder="Buscar por nombre, DNI o torre...">
+						</div>
+					</div>
+				</div>
+				<div class="data-table-wrap">
+					<table class="data-table">
+						<thead>
+							<tr>
+								<th>#</th>
+								<th>Residente</th>
+								<th>DNI</th>
+								<th>Tipo</th>
+								<th>Torre / Depto</th>
+								<th>Celular</th>
+								<th>Correo</th>
+								<th>Estado</th>
+								<th>Acciones</th>
+							</tr>
+						</thead>
+						<tbody id="tabla-residentes">
+							<tr><td colspan="9" class="table-empty">Cargando...</td></tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="table-footer">
+					<span id="paginacion-info">Mostrando 0 de 0 residentes</span>
+					<div class="pagination-controls">
+						<select id="per-page">
+							<option value="10">10 por página</option>
+							<option value="25">25 por página</option>
+							<option value="50">50 por página</option>
+						</select>
+						<button type="button" id="btn-prev" class="btn-page"><i class='bx bx-chevron-left'></i></button>
+						<span id="paginas" class="paginas"></span>
+						<button type="button" id="btn-next" class="btn-page"><i class='bx bx-chevron-right'></i></button>
+					</div>
+				</div>
+			</div>
+
+			<!-- MODAL CONFIRMAR ESTADO -->
+			<div id="modal-estado" class="modal-overlay">
+				<div class="modal-box">
+					<h2><i class='bx bx-error-circle'></i> <span id="estado-titulo">Desactivar Residente</span></h2>
+					<p id="estado-mensaje">¿Desactivar a <strong id="estado-nombre">--</strong>? Ya no podrá ingresar por reconocimiento facial hasta que sea reactivado.</p>
+					<div class="modal-actions">
+						<button type="button" class="btn-cancel" id="btn-cancelar-estado">Cancelar</button>
+						<button type="button" class="btn-save btn-danger" id="btn-confirmar-estado"><i class='bx bx-power-off'></i> Confirmar</button>
+					</div>
+				</div>
+			</div>
+
+			<!-- MODAL EDITAR RESIDENTE -->
+			<div id="modal-editar" class="modal-overlay">
+				<div class="modal-box modal-box-form">
+					<div class="head"><h3><i class='bx bx-edit icon'></i> Editar Residente</h3></div>
+					<div id="modal-editar-mensaje"></div>
+					<form id="form-editar-residente">
+						<input type="hidden" id="edit-id" name="id">
+						<div class="form-grid">
+							<div class="field">
+								<label for="edit-tipo_residente_id">Tipo de Residente *</label>
+								<select id="edit-tipo_residente_id" name="tipo_residente_id" required>
+									<option value="">Cargando...</option>
+								</select>
+							</div>
+							<div class="field">
+								<label for="edit-nombres">Nombres *</label>
+								<input type="text" id="edit-nombres" name="nombres" required>
+							</div>
+							<div class="field">
+								<label for="edit-apellidos">Apellidos *</label>
+								<input type="text" id="edit-apellidos" name="apellidos" required>
+							</div>
+							<div class="field">
+								<label for="edit-dni">DNI *</label>
+								<input type="text" id="edit-dni" name="dni" maxlength="8" required>
+							</div>
+							<div class="field">
+								<label for="edit-fecha_nacimiento">Fecha de Nacimiento</label>
+								<input type="date" id="edit-fecha_nacimiento" name="fecha_nacimiento">
+							</div>
+							<div class="field">
+								<label for="edit-sexo">Sexo</label>
+								<select id="edit-sexo" name="sexo">
+									<option value="">Sin especificar</option>
+									<option>Masculino</option>
+									<option>Femenino</option>
+								</select>
+							</div>
+							<div class="field">
+								<label for="edit-estado_civil">Estado Civil</label>
+								<select id="edit-estado_civil" name="estado_civil">
+									<option value="">Sin especificar</option>
+									<option>Soltero</option>
+									<option>Casado</option>
+									<option>Divorciado</option>
+									<option>Viudo</option>
+								</select>
+							</div>
+							<div class="field">
+								<label for="edit-correo">Correo</label>
+								<input type="email" id="edit-correo" name="correo">
+							</div>
+							<div class="field">
+								<label for="edit-celular">Celular</label>
+								<input type="text" id="edit-celular" name="celular">
+							</div>
+							<div class="field">
+								<label for="edit-telefono">Teléfono</label>
+								<input type="text" id="edit-telefono" name="telefono">
+							</div>
+							<div class="field span-2">
+								<label for="edit-direccion">Dirección</label>
+								<input type="text" id="edit-direccion" name="direccion">
+							</div>
+							<div class="field span-2" id="edit-torre-info-wrap" style="display:none;">
+								<label>Torre / Departamento actual</label>
+								<span class="field-hint" id="edit-torre-info">--</span>
+							</div>
+						</div>
+						<div class="modal-actions">
+							<button type="button" class="btn-cancel" id="btn-cancelar-editar">Cancelar</button>
+							<button type="submit" class="btn-save"><i class='bx bx-save'></i> Guardar</button>
+						</div>
+					</form>
+				</div>
+			</div>
+
+		</main>
+		<!-- MAIN -->
+	</section>
+	<!-- NAVBAR -->
+
+	<script src="../statics/js/apexcharts.min.js"></script>
+	<script src="../statics/js/session.js"></script>
+	<script src="../statics/js/script_dashboard.js"></script>
+	<script src="../statics/js/api_residentes_lista.js"></script>
+</body>
+</html>

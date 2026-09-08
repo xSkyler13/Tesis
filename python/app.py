@@ -7,7 +7,7 @@ import numpy as np
 import face_recognition
 
 import utils.face_utils as fu
-from utils.face_utils import load_known_faces, save_new_face
+from utils.face_utils import load_known_faces, save_new_face, delete_face, reactivate_face
 
 face_bp = Blueprint('face', __name__)
 
@@ -115,6 +115,28 @@ def save_face():
     except Exception as e:
         print("Error:", str(e))
         return jsonify({"success": False, "message": "Error interno"})
+
+
+# ==================== ELIMINACIÓN ====================
+@face_bp.route('/delete_face', methods=['POST'])
+def delete_face_route():
+    name = request.form.get('name')
+    if not name:
+        return jsonify({"success": False, "message": "Falta el nombre"})
+    if delete_face(name):
+        return jsonify({"success": True, "message": f"🚫 {name} desactivado"})
+    return jsonify({"success": False, "message": "No se encontró ese rostro registrado"})
+
+
+# ==================== REACTIVACIÓN ====================
+@face_bp.route('/reactivate_face', methods=['POST'])
+def reactivate_face_route():
+    name = request.form.get('name')
+    if not name:
+        return jsonify({"success": False, "message": "Falta el nombre"})
+    if reactivate_face(name):
+        return jsonify({"success": True, "message": f"✅ {name} reactivado"})
+    return jsonify({"success": False, "message": "No se encontró la foto para reactivar, o no se detectó un rostro claro"})
 
 
 # ==================== RECONOCIMIENTO + LIVENESS ====================

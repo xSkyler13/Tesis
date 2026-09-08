@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href='../statics/css/boxicons.min.css' rel='stylesheet'>
+	<link rel="stylesheet" href="../statics/css/style_dashboard.css">
+	<title>Torre</title>
+</head>
+<body>
+
+	{% include 'partials/sidebar.html' %}
+
+	<!-- NAVBAR -->
+	<section id="content">
+		{% include 'partials/navbar.html' %}
+
+		<!-- MAIN -->
+		<main>
+			<div class="page-head">
+				<div>
+					<h1 class="title">Torre</h1>
+					<ul class="breadcrumbs">
+						<li><a href="#">Edificios</a></li>
+						<li class="divider">/</li>
+						<li><a href="#" class="active">Torre</a></li>
+					</ul>
+				</div>
+			</div>
+
+			<div id="mensaje"></div>
+
+			<form id="form-torre" class="torre-form">
+				<input type="hidden" id="imagen_base64" name="imagen_base64">
+				<div class="form-row form-row-torre">
+					<div class="main-column">
+					<div class="content-data form-card">
+						<div class="head"><h3><i class='bx bx-building-house icon'></i> Información de la Torre</h3></div>
+						<div class="form-grid">
+							<div class="field">
+								<label for="nombre">Nombre de la Torre *</label>
+								<input type="text" id="nombre" name="nombre" placeholder="Torre A" required>
+							</div>
+							<div class="field">
+								<label for="direccion">Dirección *</label>
+								<input type="text" id="direccion" name="direccion" placeholder="Av. Los Fresnos 123, Urb. El Bosque" required>
+							</div>
+							<div class="field">
+								<label for="codigo">Código de la Torre *</label>
+								<input type="text" id="codigo" name="codigo" maxlength="10" placeholder="TA" required>
+							</div>
+							<div class="field">
+								<label for="numero_departamentos">Número de Departamentos</label>
+								<input type="number" id="numero_departamentos" name="numero_departamentos" placeholder="120">
+							</div>
+							<div class="field">
+								<label for="numero_pisos">Número de Pisos *</label>
+								<input type="number" id="numero_pisos" name="numero_pisos" placeholder="15" required>
+							</div>
+							<div class="field">
+								<label for="estado">Estado *</label>
+								<select id="estado" name="estado" required>
+									<option>Activo</option>
+									<option>Inactivo</option>
+								</select>
+							</div>
+							<div class="field">
+								<label for="descripcion">Descripción</label>
+								<textarea id="descripcion" name="descripcion" maxlength="255" rows="4" placeholder="Torre principal con vista al parque y áreas comunes."></textarea>
+								<span class="char-counter"><span id="descripcion-count">0</span> / 255</span>
+							</div>
+							<div class="field">
+								<label>Imagen de la Torre</label>
+								<div class="image-drop" id="image-drop">
+									<div class="image-drop-empty" id="image-drop-empty">
+										<i class='bx bx-cloud-upload'></i>
+										<p>Arrastra una imagen o<br>haz clic para seleccionar</p>
+										<span>JPG, PNG o WEBP. Máx. 2MB</span>
+									</div>
+									<div class="image-drop-preview" id="image-drop-preview" style="display:none;">
+										<img id="image-drop-img" src="" alt="">
+										<button type="button" id="image-drop-remove" class="image-drop-remove"><i class='bx bx-x'></i></button>
+									</div>
+									<input type="file" id="imagen_torre" accept="image/png, image/jpeg, image/webp" hidden>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="content-data form-card">
+						<div class="head"><h3><i class='bx bx-info-circle icon'></i> Información Adicional</h3></div>
+						<div class="form-grid">
+							<div class="field">
+								<label for="administrador_id">Administrador Asignado</label>
+								<select id="administrador_id" name="administrador_id">
+									<option value="">Cargando...</option>
+								</select>
+							</div>
+							<div class="field">
+								<label for="observaciones">Observaciones</label>
+								<textarea id="observaciones" name="observaciones" maxlength="255" rows="2" placeholder="Observaciones adicionales sobre la torre..."></textarea>
+								<span class="char-counter"><span id="observaciones-count">0</span> / 255</span>
+							</div>
+						</div>
+					</div>
+					</div>
+
+					<div class="sidebar-preview">
+						<div class="content-data form-card">
+							<div class="head"><h3><i class='bx bx-image icon'></i> Vista Previa</h3></div>
+							<div class="torre-preview-card">
+								<div class="torre-preview-icon" id="preview-icon">
+									<img id="preview-img" src="" alt="" style="display:none;">
+									<i class='bx bxs-buildings' id="preview-placeholder-icon"></i>
+								</div>
+								<p class="torre-preview-nombre" id="preview-nombre">Torre A</p>
+								<span class="torre-preview-estado badge-status success" id="preview-estado">Activo</span>
+								<p class="torre-preview-meta"><span id="preview-pisos">15</span> Pisos</p>
+								<p class="torre-preview-meta"><span id="preview-deptos">120</span> Departamentos</p>
+							</div>
+						</div>
+
+						<div class="content-data form-card">
+							<div class="head"><h3><i class='bx bx-list-ul icon'></i> Resumen de la Torre</h3></div>
+							<ul class="torre-resumen">
+								<li><i class='bx bx-hash'></i> <span class="label">Código:</span> <span class="value" id="resumen-codigo">--</span></li>
+								<li><i class='bx bx-building-house'></i> <span class="label">Pisos:</span> <span class="value" id="resumen-pisos">--</span></li>
+								<li><i class='bx bx-grid-alt'></i> <span class="label">Departamentos por piso:</span> <span class="value" id="resumen-deptos-piso">--</span></li>
+								<li><i class='bx bx-time'></i> <span class="label">Estado:</span> <span class="badge-status success" id="resumen-estado">Activo</span></li>
+							</ul>
+						</div>
+
+						<div class="content-data form-card">
+							<div class="head"><h3><i class='bx bx-bar-chart-alt-2 icon'></i> Distribución por pisos</h3></div>
+							<ul class="torre-distribucion" id="torre-distribucion">
+								<li class="dist-empty">Completá pisos y departamentos para ver la distribución</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-footer">
+					<button type="button" class="btn-cancel">Cancelar</button>
+					<button type="reset" class="btn-reset"><i class='bx bx-reset'></i> Limpiar</button>
+					<button type="submit" class="btn-save"><i class='bx bx-save'></i> Guardar Torre</button>
+				</div>
+			</form>
+		</main>
+		<!-- MAIN -->
+	</section>
+	<!-- NAVBAR -->
+
+	<script src="../statics/js/apexcharts.min.js"></script>
+	<script src="../statics/js/session.js"></script>
+	<script src="../statics/js/script_dashboard.js"></script>
+	<script src="../statics/js/api_register_torre.js"></script>
+</body>
+</html>

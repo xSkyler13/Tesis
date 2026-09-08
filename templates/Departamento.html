@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href='../statics/css/boxicons.min.css' rel='stylesheet'>
+	<link rel="stylesheet" href="../statics/css/style_dashboard.css">
+	<title>Departamento</title>
+</head>
+<body>
+
+	{% include 'partials/sidebar.html' %}
+
+	<!-- NAVBAR -->
+	<section id="content">
+		{% include 'partials/navbar.html' %}
+
+		<!-- MAIN -->
+		<main>
+			<div class="page-head">
+				<div>
+					<h1 class="title">Departamento</h1>
+					<ul class="breadcrumbs">
+						<li><a href="#">Edificios</a></li>
+						<li class="divider">/</li>
+						<li><a href="#" class="active">Departamento</a></li>
+					</ul>
+				</div>
+			</div>
+
+			<div id="mensaje"></div>
+			<div id="capacidad-aviso"></div>
+
+			<form id="form-departamento" class="torre-form">
+				<div class="form-row form-row-torre">
+					<div class="main-column">
+					<div class="content-data form-card">
+						<div class="head"><h3><i class='bx bx-building-house icon'></i> Información del Departamento</h3></div>
+						<div class="form-grid">
+							<div class="field">
+								<label for="torre_id">Torre *</label>
+								<select id="torre_id" name="torre_id" required>
+									<option value="">Cargando...</option>
+								</select>
+							</div>
+							<div class="field">
+								<label for="numero">Número de Departamento *</label>
+								<input type="text" id="numero" name="numero" placeholder="501" required>
+							</div>
+							<div class="field">
+								<label for="tipo">Tipo de Departamento *</label>
+								<select id="tipo" name="tipo" required>
+									<option>Departamento</option>
+									<option>Dúplex</option>
+									<option>Penthouse</option>
+									<option>Estudio</option>
+								</select>
+							</div>
+							<div class="field">
+								<label for="piso">Piso *</label>
+								<input type="number" id="piso" name="piso" placeholder="5" required>
+							</div>
+							<div class="field">
+								<label for="area">Área (m²)</label>
+								<input type="number" step="0.01" id="area" name="area" placeholder="85.50">
+							</div>
+							<div class="field">
+								<label for="habitaciones">Número de Habitaciones</label>
+								<input type="number" id="habitaciones" name="habitaciones" placeholder="3">
+							</div>
+							<div class="field">
+								<label for="banos">Número de Baños</label>
+								<input type="number" id="banos" name="banos" placeholder="2">
+							</div>
+							<div class="field">
+								<label for="estacionamiento">Estacionamiento Asignado</label>
+								<input type="text" id="estacionamiento" name="estacionamiento" placeholder="A-25">
+							</div>
+							<div class="field">
+								<label for="propietario_id">Propietario / Responsable</label>
+								<select id="propietario_id" name="propietario_id">
+									<option value="">Cargando...</option>
+								</select>
+							</div>
+							<div class="field">
+								<label for="telefono_contacto">Teléfono de Contacto</label>
+								<input type="text" id="telefono_contacto" name="telefono_contacto" placeholder="987 654 321">
+							</div>
+							<div class="field">
+								<label for="estado">Estado *</label>
+								<select id="estado" name="estado" required>
+									<option>Activo</option>
+									<option>Inactivo</option>
+									<option>Mantenimiento</option>
+								</select>
+							</div>
+							<div class="field">
+								<label>Fecha de Registro</label>
+								<div class="input-icon">
+									<i class='bx bx-calendar'></i>
+									<input type="text" id="fecha_registro" disabled>
+								</div>
+							</div>
+							<div class="field span-2">
+								<label for="observaciones">Observaciones</label>
+								<div class="textarea-wrap">
+									<textarea id="observaciones" name="observaciones" maxlength="255" rows="3" placeholder="Observaciones adicionales del departamento..."></textarea>
+									<span class="char-counter"><span id="observaciones-count">0</span> / 255</span>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="content-data form-card">
+						<div class="head"><h3><i class='bx bx-info-circle icon'></i> Información Adicional</h3></div>
+						<div class="form-grid">
+							<div class="field">
+								<label for="codigo_interno">Código Interno</label>
+								<input type="text" id="codigo_interno" disabled placeholder="Se genera automáticamente">
+								<span class="field-hint">Código automático generado por el sistema.</span>
+							</div>
+							<div class="field">
+								<label for="notas_internas">Notas Internas</label>
+								<div class="textarea-wrap">
+									<textarea id="notas_internas" name="notas_internas" maxlength="255" rows="2" placeholder="Notas internas (uso exclusivo de seguridad / administración)..."></textarea>
+									<span class="char-counter"><span id="notas_internas-count">0</span> / 255</span>
+								</div>
+							</div>
+						</div>
+					</div>
+					</div>
+
+					<div class="sidebar-preview">
+						<div class="content-data form-card">
+							<div class="head"><h3><i class='bx bx-image icon'></i> Vista Previa</h3></div>
+							<div class="torre-preview-card">
+								<div class="torre-preview-icon">
+									<i class='bx bxs-buildings'></i>
+								</div>
+								<p class="torre-preview-nombre" id="preview-titulo">Torre - Piso</p>
+								<p class="torre-preview-numero" id="preview-numero">--</p>
+								<span class="badge-status info" id="preview-tipo">Departamento</span>
+								<span class="torre-preview-estado badge-status success" id="preview-estado">Activo</span>
+							</div>
+						</div>
+
+						<div class="content-data form-card">
+							<div class="head"><h3><i class='bx bx-list-ul icon'></i> Resumen del Departamento</h3></div>
+							<ul class="torre-resumen">
+								<li><i class='bx bx-building-house'></i> <span class="label">Torre:</span> <span class="value" id="resumen-torre">--</span></li>
+								<li><i class='bx bx-layer'></i> <span class="label">Piso:</span> <span class="value" id="resumen-piso">--</span></li>
+								<li><i class='bx bx-ruler'></i> <span class="label">Área / Habitaciones:</span> <span class="value" id="resumen-area-hab">--</span></li>
+								<li><i class='bx bx-bath'></i> <span class="label">Baños:</span> <span class="value" id="resumen-banos">--</span></li>
+								<li><i class='bx bx-car'></i> <span class="label">Estacionamiento:</span> <span class="value" id="resumen-estacionamiento">--</span></li>
+								<li><i class='bx bx-user'></i> <span class="label">Responsable:</span> <span class="value" id="resumen-propietario">--</span></li>
+								<li><i class='bx bx-time'></i> <span class="label">Estado:</span> <span class="badge-status success" id="resumen-estado">Activo</span></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-footer">
+					<button type="button" class="btn-cancel">Cancelar</button>
+					<div class="form-footer-right">
+						<button type="reset" class="btn-reset"><i class='bx bx-reset'></i> Limpiar</button>
+						<button type="submit" class="btn-save" id="btn-guardar-departamento"><i class='bx bx-save'></i> Guardar Departamento</button>
+					</div>
+				</div>
+			</form>
+		</main>
+		<!-- MAIN -->
+	</section>
+	<!-- NAVBAR -->
+
+	<script src="../statics/js/apexcharts.min.js"></script>
+	<script src="../statics/js/session.js"></script>
+	<script src="../statics/js/script_dashboard.js"></script>
+	<script src="../statics/js/api_register_departamento.js"></script>
+</body>
+</html>

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href='../statics/css/boxicons.min.css' rel='stylesheet'>
+	<link rel="stylesheet" href="../statics/css/style_dashboard.css">
+	<title>Visita</title>
+</head>
+<body>
+
+	{% include 'partials/sidebar.html' %}
+
+	<!-- NAVBAR -->
+	<section id="content">
+		{% include 'partials/navbar.html' %}
+
+		<!-- MAIN -->
+		<main>
+			<div class="page-head">
+				<div>
+					<h1 class="title">Visita</h1>
+					<ul class="breadcrumbs">
+						<li><a href="#">Registros</a></li>
+						<li class="divider">/</li>
+						<li><a href="#" class="active">Visita</a></li>
+					</ul>
+				</div>
+			</div>
+
+			<div id="mensaje"></div>
+
+			<form id="form-visita" class="torre-form">
+				<div class="form-row form-row-torre">
+					<div class="main-column">
+						<div class="content-data form-card">
+							<div class="head"><h3><i class='bx bx-id-card icon'></i> Información de la Visita</h3></div>
+							<div class="form-grid">
+								<div class="field">
+									<label for="tipo_visita">Tipo de Visita *</label>
+									<select id="tipo_visita" name="tipo_visita" required>
+										<option>Familiar</option>
+										<option>Amigo</option>
+										<option>Proveedor</option>
+										<option>Delivery</option>
+										<option>Servicio Técnico</option>
+										<option>Otro</option>
+									</select>
+								</div>
+								<div class="field">
+									<label for="fecha_visita">Fecha de Visita *</label>
+									<div class="input-icon">
+										<i class='bx bx-calendar' onclick="document.getElementById('fecha_visita').showPicker()"></i>
+										<input type="date" id="fecha_visita" name="fecha_visita" required>
+									</div>
+								</div>
+								<div class="field">
+									<label for="hora_ingreso">Hora de Ingreso *</label>
+									<div class="input-icon">
+										<i class='bx bx-time' onclick="document.getElementById('hora_ingreso').showPicker()"></i>
+										<input type="time" id="hora_ingreso" name="hora_ingreso" required>
+									</div>
+								</div>
+								<div class="field">
+									<label for="motivo">Motivo de la Visita *</label>
+									<select id="motivo" name="motivo" required>
+										<option>Visita social</option>
+										<option>Entrega / Delivery</option>
+										<option>Mantenimiento</option>
+										<option>Reunión de trabajo</option>
+										<option>Mudanza</option>
+										<option>Otro</option>
+									</select>
+								</div>
+								<div class="field">
+									<label for="tiempo_estimado">Tiempo Estimado de Permanencia</label>
+									<select id="tiempo_estimado" name="tiempo_estimado">
+										<option value="">Sin especificar</option>
+										<option>Menos de 1 hora</option>
+										<option>1 - 2 horas</option>
+										<option>2 - 4 horas</option>
+										<option>Más de 4 horas</option>
+									</select>
+								</div>
+								<div class="field">
+									<label for="numero_visitantes">Número de Visitantes *</label>
+									<input type="number" id="numero_visitantes" name="numero_visitantes" min="1" value="1" required>
+								</div>
+								<div class="field">
+									<label for="autorizacion_residente">Autorización del Residente *</label>
+									<select id="autorizacion_residente" name="autorizacion_residente" required>
+										<option value="Si">Sí</option>
+										<option value="No">No</option>
+									</select>
+								</div>
+								<div class="field">
+									<label for="via_autorizacion">Vía de Autorización *</label>
+									<select id="via_autorizacion" name="via_autorizacion" required>
+										<option value="">Seleccione</option>
+										<option>Llamada telefónica</option>
+										<option>App / Intercomunicador</option>
+										<option>Presencial</option>
+										<option>Autorización previa</option>
+									</select>
+								</div>
+							</div>
+						</div>
+
+						<div class="content-data form-card">
+							<div class="head"><h3><i class='bx bx-user icon'></i> Información del Residente Anfitrión</h3></div>
+							<div class="form-grid">
+								<div class="field">
+									<label for="torre_id">Torre *</label>
+									<select id="torre_id" name="torre_id" required>
+										<option value="">Cargando...</option>
+									</select>
+								</div>
+								<div class="field">
+									<label for="departamento_id">Departamento *</label>
+									<select id="departamento_id" name="departamento_id" required disabled>
+										<option value="">-- Seleccione una torre primero --</option>
+									</select>
+								</div>
+								<div class="field">
+									<label for="residente_id">Residente *</label>
+									<select id="residente_id" name="residente_id" required disabled>
+										<option value="">-- Seleccione un departamento primero --</option>
+									</select>
+								</div>
+							</div>
+							<div class="info-box" id="contacto-residente" style="display:none;">
+								<i class='bx bx-info-circle'></i>
+								<span>Contacto del Residente: <a id="contacto-celular" href="#"></a> · <a id="contacto-correo" href="#"></a></span>
+							</div>
+						</div>
+
+						<div class="content-data form-card">
+							<div class="head"><h3><i class='bx bx-user-circle icon'></i> Información del Visitante</h3></div>
+							<div class="form-grid">
+								<div class="field">
+									<label for="nombres_visitante">Nombres y Apellidos *</label>
+									<input type="text" id="nombres_visitante" name="nombres_visitante" required>
+								</div>
+								<div class="field field-doc">
+									<label for="numero_documento">Documento de Identidad *</label>
+									<div class="range-fields">
+										<select id="tipo_documento" name="tipo_documento">
+											<option>DNI</option>
+											<option>Carné de Extranjería</option>
+											<option>Pasaporte</option>
+										</select>
+										<input type="text" id="numero_documento" name="numero_documento" placeholder="45678912" required>
+									</div>
+								</div>
+								<div class="field">
+									<label for="fecha_nacimiento">Fecha de Nacimiento</label>
+									<div class="input-icon">
+										<i class='bx bx-calendar' onclick="document.getElementById('fecha_nacimiento').showPicker()"></i>
+										<input type="date" id="fecha_nacimiento" name="fecha_nacimiento">
+									</div>
+								</div>
+								<div class="field">
+									<label for="telefono">Teléfono / Celular *</label>
+									<input type="text" id="telefono" name="telefono" required>
+								</div>
+								<div class="field">
+									<label for="correo">Correo Electrónico</label>
+									<input type="email" id="correo" name="correo">
+								</div>
+								<div class="field">
+									<label for="parentesco">Parentesco / Relación</label>
+									<input type="text" id="parentesco" name="parentesco">
+								</div>
+								<div class="field">
+									<label for="direccion">Dirección (Opcional)</label>
+									<input type="text" id="direccion" name="direccion">
+								</div>
+								<div class="field">
+									<label for="empresa">Empresa / Institución (Opcional)</label>
+									<input type="text" id="empresa" name="empresa">
+								</div>
+							</div>
+						</div>
+
+						<div class="content-data form-card">
+							<div class="head"><h3><i class='bx bx-note icon'></i> Observaciones Adicionales</h3></div>
+							<div class="form-grid">
+								<div class="field span-2">
+									<div class="textarea-wrap">
+										<textarea id="observaciones" name="observaciones" maxlength="255" rows="3" placeholder="Información adicional sobre la visita..."></textarea>
+										<span class="char-counter"><span id="observaciones-count">0</span> / 255</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="sidebar-preview">
+						<div class="content-data form-card">
+							<div class="head"><h3><i class='bx bx-id-card icon'></i> Vista Previa de la Visita</h3></div>
+							<div class="torre-preview-card">
+								<div class="torre-preview-icon">
+									<i class='bx bx-user'></i>
+								</div>
+								<p class="torre-preview-nombre" id="preview-nombre">Nombre del Visitante</p>
+								<span class="badge-status info" id="preview-tipo">Visitante</span>
+							</div>
+							<ul class="torre-resumen">
+								<li><i class='bx bx-calendar'></i> <span class="value" id="preview-fecha">--</span></li>
+								<li><i class='bx bx-time'></i> <span class="value" id="preview-hora">--</span></li>
+								<li><i class='bx bx-hourglass'></i> <span class="value" id="preview-tiempo">--</span></li>
+								<li><i class='bx bx-group'></i> <span class="value" id="preview-numvisitantes">--</span></li>
+								<li><i class='bx bx-building-house'></i> <span class="value" id="preview-torredepto">--</span></li>
+								<li><i class='bx bx-user'></i> <span class="value" id="preview-anfitrion">--</span></li>
+							</ul>
+						</div>
+
+						<div class="content-data form-card">
+							<div class="head"><h3><i class='bx bx-file icon'></i> Documentos del Visitante</h3></div>
+							<label class="dropzone" id="dropzone-doc">
+								<input type="file" id="foto_documento" accept="image/*,.pdf" hidden>
+								<i class='bx bx-cloud-upload'></i>
+								<p>Arrastra la imagen o haz clic para seleccionar</p>
+								<span class="field-hint">JPG, PNG o PDF. Máx. 2MB</span>
+								<span class="field-hint" id="doc-nombre-archivo"></span>
+							</label>
+						</div>
+
+						<div class="content-data form-card">
+							<div class="head"><h3><i class='bx bx-history icon'></i> Registros Recientes</h3></div>
+							<ul class="access-list" id="lista-visitas-recientes">
+								<li class="access-item"><p class="table-empty">Cargando...</p></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-footer">
+					<button type="button" class="btn-cancel">Cancelar</button>
+					<div class="form-footer-right">
+						<button type="reset" class="btn-reset"><i class='bx bx-reset'></i> Limpiar</button>
+						<button type="submit" class="btn-save" id="btn-guardar-visita"><i class='bx bx-save'></i> Registrar Visita</button>
+					</div>
+				</div>
+			</form>
+		</main>
+		<!-- MAIN -->
+	</section>
+	<!-- NAVBAR -->
+
+	<script src="../statics/js/apexcharts.min.js"></script>
+	<script src="../statics/js/session.js"></script>
+	<script src="../statics/js/script_dashboard.js"></script>
+	<script src="../statics/js/api_register_visita.js"></script>
+	
+</body>
+</html>

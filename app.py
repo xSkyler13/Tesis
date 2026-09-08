@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, send_from_directory
 from flask_cors import CORS
 import requests
 import utils.face_utils as fu
@@ -18,6 +18,11 @@ load_known_faces()
 print(f"📊 Total de rostros cargados: {len(fu.known_face_encodings)}")
 if len(fu.known_face_encodings) == 0:
     print("⚠️  ¡ADVERTENCIA! No hay ningún rostro registrado. Registra primero en /register")
+
+# ==================== ARCHIVOS ====================
+@app.route('/known_faces/<path:filename>')
+def known_faces_file(filename):
+    return send_from_directory('known_faces', filename)
 
 # ==================== PÁGINAS ====================
 @app.route('/')
@@ -44,6 +49,30 @@ def inicio_page():
 @app.route('/login')
 def login_page():
     return render_template('login.html')
+
+@app.route('/propietario')
+def propietario_page():
+    return render_template('Propietario.html')
+
+@app.route('/torre')
+def torre_page():
+    return render_template('Torre.html')
+
+@app.route('/departamento')
+def departamento_page():
+    return render_template('Departamento.html')
+
+@app.route('/departamentos')
+def departamentos_page():
+    return render_template('Departamentos.html')
+
+@app.route('/residentes')
+def residentes_page():
+    return render_template('Residentes.html')
+
+@app.route('/visita')
+def visita_page():
+    return render_template('Visita.html')
 
 # ================== PÁGINAS_API ==================
 @app.route("/roles")

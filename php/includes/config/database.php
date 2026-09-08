@@ -18,6 +18,8 @@ try {
         ]
     );
 
+    $conexion->exec("SET time_zone = '-05:00'");
+
 } catch (PDOException $e) {
 
     error_log($e->getMessage());

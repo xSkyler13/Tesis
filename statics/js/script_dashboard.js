@@ -19,17 +19,20 @@ function updateDatetime() {
 updateDatetime();
 setInterval(updateDatetime, 1000);
 
-// VISITANTES - AUTORIZAR / RECHAZAR
-document.querySelectorAll('.visitor-item').forEach(item => {
-	const btnAuthorize = item.querySelector('.btn-authorize');
-	const btnReject = item.querySelector('.btn-reject');
+// FECHA NACIMIENTO - no permitir fechas futuras
+const fechaNacimientoEl = document.getElementById('fecha_nacimiento');
+if (fechaNacimientoEl) {
+	fechaNacimientoEl.max = new Date().toISOString().split('T')[0];
+}
 
-	btnAuthorize.addEventListener('click', function () {
-		item.classList.add('resolved');
-	})
-
-	btnReject.addEventListener('click', function () {
-		item.classList.add('resolved');
+// TOGGLE PASSWORD
+document.querySelectorAll('.toggle-password').forEach(icon => {
+	const input = icon.previousElementSibling;
+	icon.addEventListener('click', function () {
+		const isHidden = input.type === 'password';
+		input.type = isHidden ? 'text' : 'password';
+		icon.classList.toggle('bx-hide', !isHidden);
+		icon.classList.toggle('bx-show', isHidden);
 	})
 })
 
@@ -61,7 +64,7 @@ allDropdown.forEach(item=> {
 
 
 // SIDEBAR ACTIVE LINK
-const allSideLinks = document.querySelectorAll('#sidebar .side-menu > li > a');
+const allSideLinks = document.querySelectorAll('#sidebar .side-menu > li:not(:has(.side-dropdown)) > a');
 
 allSideLinks.forEach(link => {
 	link.addEventListener('click', function (e) {
@@ -238,5 +241,8 @@ tooltip: {
 },
 };
 
-var chart = new ApexCharts(document.querySelector("#chart"), options);
-chart.render();
+const chartEl = document.querySelector("#chart");
+if (chartEl) {
+	var chart = new ApexCharts(chartEl, options);
+	chart.render();
+}

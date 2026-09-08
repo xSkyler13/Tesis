@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href='../statics/css/boxicons.min.css' rel='stylesheet'>
+	<link rel="stylesheet" href="../statics/css/style_dashboard.css">
+	<title>Departamentos</title>
+</head>
+<body>
+
+	{% include 'partials/sidebar.html' %}
+
+	<!-- NAVBAR -->
+	<section id="content">
+		{% include 'partials/navbar.html' %}
+
+		<!-- MAIN -->
+		<main>
+			<div class="page-head">
+				<div>
+					<h1 class="title">Departamentos</h1>
+					<ul class="breadcrumbs">
+						<li><a href="#">Edificios</a></li>
+						<li class="divider">/</li>
+						<li><a href="#" class="active">Departamentos</a></li>
+					</ul>
+				</div>
+				<div class="form-footer-right">
+					<button type="button" class="btn-reset"><i class='bx bx-download'></i> Exportar</button>
+					<a href="./departamento" class="btn-primary"><i class='bx bx-plus'></i> Nuevo Departamento</a>
+				</div>
+			</div>
+
+			<div class="form-row">
+				<div class="content-data form-card">
+					<div class="head"><h3><i class='bx bx-filter-alt icon'></i> Filtros de Búsqueda</h3></div>
+					<div class="form-grid">
+						<div class="field">
+							<label for="f-torre">Torre</label>
+							<select id="f-torre">
+								<option value="">Todos</option>
+							</select>
+						</div>
+						<div class="field">
+							<label for="f-piso">Piso</label>
+							<select id="f-piso">
+								<option value="">Todos</option>
+							</select>
+						</div>
+						<div class="field">
+							<label for="f-estado">Estado</label>
+							<select id="f-estado">
+								<option value="">Todos</option>
+								<option>Activo</option>
+								<option>Inactivo</option>
+								<option>Mantenimiento</option>
+							</select>
+						</div>
+						<div class="field">
+							<label for="f-tipo">Tipo de Departamento</label>
+							<select id="f-tipo">
+								<option value="">Todos</option>
+								<option>Departamento</option>
+								<option>Dúplex</option>
+								<option>Penthouse</option>
+								<option>Estudio</option>
+							</select>
+						</div>
+						<div class="field span-2">
+							<label>Fecha de Registro</label>
+							<div class="range-fields">
+								<input type="date" id="f-fecha-desde">
+								<span>-</span>
+								<input type="date" id="f-fecha-hasta">
+							</div>
+						</div>
+					</div>
+					<div class="filtros-actions">
+						<button type="button" class="btn-reset" id="btn-limpiar-filtros"><i class='bx bx-reset'></i> Limpiar</button>
+						<button type="button" class="btn-save" id="btn-buscar"><i class='bx bx-search'></i> Buscar</button>
+					</div>
+				</div>
+					<div class="content-data form-card">
+						<div class="head"><h3 id="resumen-titulo"><i class='bx bx-bar-chart-alt-2 icon'></i> Resumen General</h3></div>
+						<div class="torre-preview-card" id="resumen-torre-card" style="display:none;">
+							<div class="torre-preview-icon" id="resumen-torre-icon">
+								<img id="resumen-torre-img" src="" alt="" style="display:none;">
+								<i class='bx bxs-buildings' id="resumen-torre-placeholder"></i>
+							</div>
+							<p class="torre-preview-nombre" id="resumen-torre-nombre">--</p>
+							<span class="torre-preview-estado badge-status success" id="resumen-torre-estado">Activo</span>
+						</div>
+						<ul class="torre-resumen">
+							<li><i class='bx bx-building-house'></i> <span class="label">Total Departamentos</span> <span class="value" id="resumen-total">--</span></li>
+							<li><i class='bx bx-check-circle'></i> <span class="label">Departamentos Activos</span> <span class="value" id="resumen-activos">--</span></li>
+							<li><i class='bx bx-x-circle'></i> <span class="label">Departamentos Inactivos</span> <span class="value" id="resumen-inactivos">--</span></li>
+							<li><i class='bx bx-ruler'></i> <span class="label">Área Total</span> <span class="badge-status info" id="resumen-area">--</span></li>
+						</ul>
+					</div>
+			</div>
+
+			<div class="content-data form-card">
+				<div class="head">
+					<h3>Lista de Departamentos Registrados</h3>
+					<div class="list-head-actions">
+						<div class="input-icon">
+							<i class='bx bx-search'></i>
+							<input type="text" id="f-buscar" placeholder="Buscar departamento...">
+						</div>
+					</div>
+				</div>
+				<div class="data-table-wrap">
+					<table class="data-table">
+						<thead>
+							<tr>
+								<th>#</th>
+								<th>Departamento</th>
+								<th>Torre</th>
+								<th>Piso</th>
+								<th>Tipo</th>
+								<th>Área (m²)</th>
+								<th>Habitaciones</th>
+								<th>Baños</th>
+								<th>Estacionamiento</th>
+								<th>Estado</th>
+								<th>Propietario</th>
+								<th>Fecha de Registro</th>
+								<th>Acciones</th>
+							</tr>
+						</thead>
+						<tbody id="tabla-departamentos">
+							<tr><td colspan="13" class="table-empty">Cargando...</td></tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="table-footer">
+					<span id="paginacion-info">Mostrando 0 de 0 departamentos</span>
+					<div class="pagination-controls">
+						<select id="per-page">
+							<option value="10">10 por página</option>
+							<option value="25">25 por página</option>
+							<option value="50">50 por página</option>
+						</select>
+						<button type="button" id="btn-prev" class="btn-page"><i class='bx bx-chevron-left'></i></button>
+						<span id="paginas" class="paginas"></span>
+						<button type="button" id="btn-next" class="btn-page"><i class='bx bx-chevron-right'></i></button>
+					</div>
+				</div>
+			</div>
+
+			<!-- MODAL CONFIRMAR ELIMINAR -->
+			<div id="modal-eliminar" class="modal-overlay">
+				<div class="modal-box">
+					<h2><i class='bx bx-error-circle'></i> Eliminar Departamento</h2>
+					<p>¿Eliminar el departamento <strong id="eliminar-numero">--</strong>? Esta acción no se puede deshacer.</p>
+					<div class="modal-actions">
+						<button type="button" class="btn-cancel" id="btn-cancelar-eliminar">Cancelar</button>
+						<button type="button" class="btn-save btn-danger" id="btn-confirmar-eliminar"><i class='bx bx-trash'></i> Confirmar</button>
+					</div>
+				</div>
+			</div>
+
+			<!-- MODAL EDITAR DEPARTAMENTO -->
+			<div id="modal-editar" class="modal-overlay">
+				<div class="modal-box modal-box-form">
+					<div class="head"><h3><i class='bx bx-edit icon'></i> Editar Departamento</h3></div>
+					<div id="modal-editar-mensaje"></div>
+					<form id="form-editar-departamento">
+						<input type="hidden" id="edit-id" name="id">
+						<div class="form-grid">
+							<div class="field">
+								<label for="edit-torre_id">Torre *</label>
+								<select id="edit-torre_id" name="torre_id" required>
+									<option value="">Cargando...</option>
+								</select>
+							</div>
+							<div class="field">
+								<label for="edit-numero">Número de Departamento *</label>
+								<input type="text" id="edit-numero" name="numero" required>
+							</div>
+							<div class="field">
+								<label for="edit-tipo">Tipo de Departamento *</label>
+								<select id="edit-tipo" name="tipo" required>
+									<option>Departamento</option>
+									<option>Dúplex</option>
+									<option>Penthouse</option>
+									<option>Estudio</option>
+								</select>
+							</div>
+							<div class="field">
+								<label for="edit-piso">Piso *</label>
+								<input type="number" id="edit-piso" name="piso" required>
+							</div>
+							<div class="field">
+								<label for="edit-area">Área (m²)</label>
+								<input type="number" step="0.01" id="edit-area" name="area">
+							</div>
+							<div class="field">
+								<label for="edit-habitaciones">Número de Habitaciones</label>
+								<input type="number" id="edit-habitaciones" name="habitaciones">
+							</div>
+							<div class="field">
+								<label for="edit-banos">Número de Baños</label>
+								<input type="number" id="edit-banos" name="banos">
+							</div>
+							<div class="field">
+								<label for="edit-estacionamiento">Estacionamiento Asignado</label>
+								<input type="text" id="edit-estacionamiento" name="estacionamiento">
+							</div>
+							<div class="field">
+								<label for="edit-propietario_id">Propietario / Responsable</label>
+								<select id="edit-propietario_id" name="propietario_id">
+									<option value="">Cargando...</option>
+								</select>
+							</div>
+							<div class="field">
+								<label for="edit-telefono_contacto">Teléfono de Contacto</label>
+								<input type="text" id="edit-telefono_contacto" name="telefono_contacto">
+							</div>
+							<div class="field">
+								<label for="edit-estado">Estado *</label>
+								<select id="edit-estado" name="estado" required>
+									<option>Activo</option>
+									<option>Inactivo</option>
+									<option>Mantenimiento</option>
+								</select>
+							</div>
+							<div class="field span-2">
+								<label for="edit-observaciones">Observaciones</label>
+								<textarea id="edit-observaciones" name="observaciones" maxlength="255" rows="3"></textarea>
+							</div>
+							<div class="field span-2">
+								<label for="edit-notas_internas">Notas Internas</label>
+								<textarea id="edit-notas_internas" name="notas_internas" maxlength="255" rows="2"></textarea>
+							</div>
+						</div>
+						<div class="modal-actions">
+							<button type="button" class="btn-cancel" id="btn-cancelar-editar">Cancelar</button>
+							<button type="submit" class="btn-save"><i class='bx bx-save'></i> Guardar</button>
+						</div>
+					</form>
+				</div>
+			</div>
+
+		</main>
+		<!-- MAIN -->
+	</section>
+	<!-- NAVBAR -->
+
+	<script src="../statics/js/apexcharts.min.js"></script>
+	<script src="../statics/js/session.js"></script>
+	<script src="../statics/js/script_dashboard.js"></script>
+	<script src="../statics/js/api_departamentos_lista.js"></script>
+</body>
+</html>

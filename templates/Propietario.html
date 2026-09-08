@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href='../statics/css/boxicons.min.css' rel='stylesheet'>
+	<link rel="stylesheet" href="../statics/css/style_dashboard.css">
+	<title>Propietario</title>
+</head>
+<body>
+	
+	{% include 'partials/sidebar.html' %}
+
+	<!-- NAVBAR -->
+	<section id="content">
+		{% include 'partials/navbar.html' %}
+
+		<!-- MAIN -->
+		<main>
+			<div class="page-head">
+				<div>
+					<h1 class="title">Propietario</h1>
+					<ul class="breadcrumbs">
+						<li><a href="#">Registros</a></li>
+						<li class="divider">/</li>
+						<li><a href="#" class="active">Propietario</a></li>
+					</ul>
+				</div>
+				<button type="button" class="btn-primary"><i class='bx bx-plus'></i> Nuevo Propietario</button>
+			</div>
+
+			<div id="mensaje"></div>
+			<form id="form-propietario" class="propietario-form">
+				<input type="hidden" id="foto_base64" name="foto_base64">
+				<div class="form-row">
+					<div class="content-data form-card">
+						<div class="head"><h3><i class='bx bx-user icon'></i> Información Personal</h3></div>
+						<div class="form-grid">
+							<div class="field">
+								<label for="nombres">Nombres *</label>
+								<input type="text" id="nombres" name="nombres" required>
+							</div>
+							<div class="field">
+								<label for="apellidos">Apellidos *</label>
+								<input type="text" id="apellidos" name="apellidos" required>
+							</div>
+							<div class="field">
+								<label for="dni">DNI *</label>
+								<input type="text" id="dni" name="dni" maxlength="8" required>
+							</div>
+							<div class="field">
+								<label for="fecha_nacimiento">Fecha de nacimiento</label>
+								<div class="input-icon">
+									<i class='bx bx-calendar'
+									onclick="document.getElementById('fecha_nacimiento').showPicker()"></i>
+
+									<input
+										type="date"
+										id="fecha_nacimiento"
+										name="fecha_nacimiento">
+								</div>
+							</div>
+							<div class="field">
+								<label for="sexo">Sexo</label>
+								<select id="sexo" name="sexo">
+									<option>Masculino</option>
+									<option>Femenino</option>
+								</select>
+							</div>
+							<div class="field">
+								<label for="estado_civil">Estado Civil</label>
+								<select id="estado_civil" name="estado_civil">
+									<option>Casado</option>
+									<option>Soltero</option>
+									<option>Divorciado</option>
+									<option>Viudo</option>
+								</select>
+							</div>
+						</div>
+					</div>
+
+
+					<div class="content-data form-card photo-card">
+						<div class="head"><h3><i class='bx bx-image icon'></i> Fotografía</h3></div>
+						<div class="photo-upload">
+							<img id="preview-img" class="photo-preview" src="" alt="" style="display:none;">
+							<i class='bx bx-user-circle photo-placeholder' id="photo-placeholder"></i>
+							<p class="photo-label">Foto para reconocimiento facial</p>
+							<button type="button" class="btn-upload" id="btn-abrir-camara">
+								<i class='bx bx-camera'></i> Tomar foto
+							</button>
+							<div id="foto-label-status" class="photo-hint">Sin foto capturada</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Modal cámara -->
+				<div id="modal-camara">
+					<div class="modal-box">
+						<h2><i class='bx bx-camera'></i> Capturar foto</h2>
+						<div id="intentos-label">
+							Intentos restantes: <strong id="intentos-num">3</strong>
+						</div>
+						<video id="video-cam" autoplay playsinline></video>
+						<canvas id="canvas-cam" width="640" height="480"></canvas>
+						<div class="modal-actions">
+							<button type="button" class="btn-save" id="btn-capturar"><i class='bx bx-camera'></i> Capturar</button>
+							<button type="button" class="btn-cancel" id="btn-cerrar-modal">Cancelar</button>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-row form-row-2">
+					<div class="content-data form-card">
+						<div class="head"><h3><i class='bx bx-envelope icon'></i> Información de Contacto</h3></div>
+						<div class="form-grid">
+							<div class="field span-2">
+								<label for="correo">Correo electrónico</label>
+								<input type="email" id="correo" name="correo">
+							</div>
+							<div class="field">
+								<label for="celular">Celular</label>
+								<input type="text" id="celular" name="celular">
+							</div>
+							<div class="field">
+								<label for="telefono">Teléfono fijo</label>
+								<input type="text" id="telefono" name="telefono">
+							</div>
+							<div class="field span-2">
+								<label for="direccion">Dirección</label>
+								<input type="text" id="direccion" name="direccion">
+							</div>
+						</div>
+					</div>
+					<div class="content-data form-card">
+						<div class="head"><h3><i class='bx bx-building-house icon'></i> Información de la Propiedad</h3></div>
+						<div class="form-grid">
+							<div class="field">
+								<label for="torre_id">Torre *</label>
+								<select id="torre_id" name="torre_id" required>
+									<option value="">Cargando...</option>
+								</select>
+							</div>
+							<div class="field">
+								<label for="departamento_id">Departamento *</label>
+								<select id="departamento_id" name="departamento_id" required disabled>
+									<option value="">-- Seleccione una torre primero --</option>
+								</select>
+							</div>
+							<div class="field">
+								<label for="tipo_residente_id">Tipo de residente *</label>
+								<select id="tipo_residente_id" name="tipo_residente_id" required>
+									<option value="">Cargando...</option>
+								</select>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-footer">
+					<button type="button" class="btn-cancel">Cancelar</button>
+					<button type="submit" class="btn-save"><i class='bx bx-save'></i> Guardar Propietario</button>
+				</div>
+			</form>
+		</main>
+		<!-- MAIN -->
+	</section>
+	<!-- NAVBAR -->
+	<script src="../statics/js/apexcharts.min.js"></script>
+	<script src="../statics/js/session.js"></script>
+	<script src="../statics/js/script_dashboard.js"></script>
+	<script src="../statics/js/api_register_residente.js"></script>
+</body>
+</html>
