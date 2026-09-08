@@ -181,6 +181,7 @@ function formatFechaHora(fecha, hora) {
 
 async function cargarVisitasRecientes() {
 	const lista = document.getElementById('lista-visitas-recientes');
+	lista.innerHTML = skeletonListaItems('access-item');
 	try {
 		const response = await fetch('http://localhost:8000/templates/api_visitas_recientes.php');
 		const visitas = await response.json();

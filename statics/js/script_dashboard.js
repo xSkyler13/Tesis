@@ -19,6 +19,31 @@ function updateDatetime() {
 updateDatetime();
 setInterval(updateDatetime, 1000);
 
+// TEMA OSCURO / CLARO
+const btnThemeToggle = document.getElementById('btn-theme-toggle');
+const themeToggleIcon = document.getElementById('theme-toggle-icon');
+
+function aplicarIconoTema(tema) {
+	if (!themeToggleIcon) return;
+	themeToggleIcon.className = tema === 'oscuro' ? 'bx bx-sun icon' : 'bx bx-moon icon';
+}
+aplicarIconoTema(localStorage.getItem('tema') || 'claro');
+
+if (btnThemeToggle) {
+	btnThemeToggle.addEventListener('click', () => {
+		const temaActual = document.documentElement.getAttribute('data-theme') === 'oscuro' ? 'oscuro' : 'claro';
+		const nuevoTema = temaActual === 'oscuro' ? 'claro' : 'oscuro';
+
+		if (nuevoTema === 'oscuro') {
+			document.documentElement.setAttribute('data-theme', 'oscuro');
+		} else {
+			document.documentElement.removeAttribute('data-theme');
+		}
+		localStorage.setItem('tema', nuevoTema);
+		aplicarIconoTema(nuevoTema);
+	})
+}
+
 // FECHA NACIMIENTO - no permitir fechas futuras
 const fechaNacimientoEl = document.getElementById('fecha_nacimiento');
 if (fechaNacimientoEl) {

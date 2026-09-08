@@ -42,7 +42,12 @@ function renderListaAccesos(eventos) {
 	}).join('');
 }
 
+let primeraCargaDashboard = true;
+
 async function cargarDashboardHome() {
+	if (primeraCargaDashboard) {
+		document.getElementById('lista-accesos-tiempo-real').innerHTML = skeletonListaItems('access-item');
+	}
 	try {
 		const response = await fetch('http://localhost:8000/templates/api_home_dashboard.php');
 		const result = await response.json();
@@ -55,6 +60,8 @@ async function cargarDashboardHome() {
 		renderListaAccesos(result.eventos);
 	} catch (error) {
 		console.error(error);
+	} finally {
+		primeraCargaDashboard = false;
 	}
 }
 
@@ -96,13 +103,20 @@ function renderVisitasPendientes(visitas) {
 	`).join('');
 }
 
+let primeraCargaVisitas = true;
+
 async function cargarVisitasPendientes() {
+	if (primeraCargaVisitas) {
+		document.getElementById('lista-visitas-pendientes').innerHTML = skeletonListaItems('visitor-item');
+	}
 	try {
 		const response = await fetch('http://localhost:8000/templates/api_visitas_pendientes.php');
 		const visitas = await response.json();
 		renderVisitasPendientes(visitas);
 	} catch (error) {
 		console.error(error);
+	} finally {
+		primeraCargaVisitas = false;
 	}
 }
 cargarVisitasPendientes();

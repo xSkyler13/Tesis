@@ -89,7 +89,7 @@ function renderPaginacion(total, page, perPage) {
 
 async function cargarResidentes(page = 1) {
 	const tbody = document.getElementById('tabla-residentes');
-	tbody.innerHTML = '<tr><td colspan="9" class="table-empty">Cargando...</td></tr>';
+	tbody.innerHTML = skeletonFilasTabla(9);
 
 	try {
 		const query = construirQuery(page);

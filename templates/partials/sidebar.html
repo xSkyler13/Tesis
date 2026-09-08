@@ -1,3 +1,9 @@
+<script>
+	(function () {
+		var tema = localStorage.getItem('tema') || 'claro';
+		if (tema === 'oscuro') document.documentElement.setAttribute('data-theme', 'oscuro');
+	})();
+</script>
 <!-- SIDEBAR -->
 <section id="sidebar">
 	<a href="./home" class="brand"><i class='bx bxs-buildings icon'></i> Anthon Dev</a>

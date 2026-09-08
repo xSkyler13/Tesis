@@ -145,7 +145,7 @@ function renderPaginacion(total, page, perPage) {
 
 async function cargarDepartamentos(page = 1) {
 	const tbody = document.getElementById('tabla-departamentos');
-	tbody.innerHTML = '<tr><td colspan="13" class="table-empty">Cargando...</td></tr>';
+	tbody.innerHTML = skeletonFilasTabla(13);
 
 	try {
 		const query = construirQuery(page);
@@ -358,4 +358,19 @@ document.getElementById('btn-confirmar-eliminar').addEventListener('click', asyn
 		cerrarModalEliminar();
 		alert('Error al eliminar el departamento');
 	}
+})
+
+// ===== EXPORTAR A EXCEL =====
+
+document.getElementById('btn-exportar').addEventListener('click', () => {
+	const params = new URLSearchParams();
+	if (torreSelect.value) params.set('torre_id', torreSelect.value);
+	if (pisoSelect.value) params.set('piso', pisoSelect.value);
+	if (valorDe('f-estado')) params.set('estado', valorDe('f-estado'));
+	if (valorDe('f-tipo')) params.set('tipo', valorDe('f-tipo'));
+	if (valorDe('f-fecha-desde')) params.set('fecha_desde', valorDe('f-fecha-desde'));
+	if (valorDe('f-fecha-hasta')) params.set('fecha_hasta', valorDe('f-fecha-hasta'));
+	if (valorDe('f-buscar')) params.set('buscar', valorDe('f-buscar'));
+
+	window.location.href = `http://localhost:8000/templates/api_departamentos_exportar.php?${params.toString()}`;
 })

@@ -14,6 +14,7 @@ document.querySelector('.form_login').addEventListener('submit', async (e) => {
         const data = await response.json();
 
         if (data.success) {
+            localStorage.setItem('usuario_id', data.data.id);
             localStorage.setItem('usuario', data.data.usuario);
             localStorage.setItem('rol_id', data.data.rol_id);
 
