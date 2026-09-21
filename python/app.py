@@ -98,6 +98,55 @@ def start_challenge(name):
     return challenge
 
 
+# ==================== GUÍA DE CAPTURA (estilo Face ID) ====================
+# No identifica a nadie: solo dice si hay un rostro en el frame, y qué tan
+# grande/centrado está, para guiar al usuario mientras encuadra la foto.
+@face_bp.route('/detectar_rostro', methods=['POST'])
+def detectar_rostro():
+    image_data = request.form.get('image')
+    if not image_data:
+        return jsonify({"rostro": False})
+
+    try:
+        frame = decode_base64_image(image_data)
+        if frame is None:
+            return jsonify({"rostro": False})
+
+        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        alto_frame, ancho_frame = rgb.shape[:2]
+
+        locations = face_recognition.face_locations(rgb)
+        if not locations:
+            return jsonify({"rostro": False})
+
+        # Si hay más de un rostro, usamos el más grande (el más cerca de la cámara)
+        idx = max(range(len(locations)),
+                  key=lambda i: (locations[i][2] - locations[i][0]) * (locations[i][1] - locations[i][3]))
+        top, right, bottom, left = locations[idx]
+
+        area_rostro = (right - left) * (bottom - top)
+        area_frame = ancho_frame * alto_frame
+        proporcion = area_rostro / area_frame if area_frame else 0
+
+        centro_x = (left + right) / 2 / ancho_frame
+        centro_y = (top + bottom) / 2 / alto_frame
+        desvio_x = abs(centro_x - 0.5)
+        desvio_y = abs(centro_y - 0.5)
+
+        centrado = desvio_x < 0.12 and desvio_y < 0.15
+        tamano_ok = proporcion >= 0.06
+
+        return jsonify({
+            "rostro": True,
+            "listo": centrado and tamano_ok,
+            "centrado": centrado,
+            "tamano_ok": tamano_ok,
+        })
+    except Exception as e:
+        print("Error en detectar_rostro:", str(e))
+        return jsonify({"rostro": False})
+
+
 # ==================== REGISTRO ====================
 @face_bp.route('/save_face', methods=['POST'])
 def save_face():

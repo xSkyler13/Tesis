@@ -94,20 +94,22 @@
 					</div>
 				</div>
 
-				<!-- Modal cámara -->
-				<div id="modal-camara">
-					<div class="modal-box">
-						<h2><i class='bx bx-camera'></i> Capturar foto</h2>
-						<div id="intentos-label">
-							Intentos restantes: <strong id="intentos-num">3</strong>
+				<!-- Modal cámara estilo Face ID -->
+				<div id="modal-camara" class="modal-faceid">
+					<div class="faceid-circle-wrap">
+						<div class="faceid-video-mask">
+							<video id="video-cam" autoplay playsinline muted></video>
 						</div>
-						<video id="video-cam" autoplay playsinline></video>
-						<canvas id="canvas-cam" width="640" height="480"></canvas>
-						<div class="modal-actions">
-							<button type="button" class="btn-save" id="btn-capturar"><i class='bx bx-camera'></i> Capturar</button>
-							<button type="button" class="btn-cancel" id="btn-cerrar-modal">Cancelar</button>
-						</div>
+						<div class="faceid-ring" id="faceid-ring"></div>
+						<div class="faceid-check" id="faceid-check"><i class='bx bx-check'></i></div>
 					</div>
+					<p class="faceid-status" id="faceid-status">Colocá tu rostro dentro del círculo</p>
+					<span class="faceid-intentos">Intentos restantes: <strong id="intentos-num">3</strong></span>
+					<div class="faceid-actions">
+						<button type="button" class="btn-faceid-manual" id="btn-capturar">Capturar manualmente</button>
+						<button type="button" class="btn-faceid-cancelar" id="btn-cerrar-modal">Cancelar</button>
+					</div>
+					<canvas id="canvas-cam" width="640" height="480" style="display:none;"></canvas>
 				</div>
 
 				<div class="form-row form-row-2">

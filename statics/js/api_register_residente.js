@@ -12,27 +12,89 @@ const btnAbrir       = document.getElementById('btn-abrir-camara');
 const btnCapturar    = document.getElementById('btn-capturar');
 const intentosNum    = document.getElementById('intentos-num');
 const form           = document.getElementById('form-propietario');
-let stream           = null;
+
+const faceidRing     = document.getElementById('faceid-ring');
+const faceidStatus   = document.getElementById('faceid-status');
+const faceidCheck    = document.getElementById('faceid-check');
+
+let stream = null;
+let polling = null;
+let capturando = false;
+let listoDesde = 0;
 
 function actualizarContador() {
 	const restantes = MAX_INTENTOS - intentosUsados;
 	intentosNum.textContent = restantes;
-	intentosNum.style.color = restantes === 1 ? 'red' : '#333';
+	intentosNum.style.color = restantes === 1 ? '#FC3B56' : '';
+}
+
+function setAnilloEstado(estado, mensaje) {
+	faceidRing.className = 'faceid-ring' + (estado ? ` ${estado}` : '');
+	faceidStatus.textContent = mensaje;
 }
 
 btnAbrir.addEventListener('click', () => {
 	if (intentosUsados >= MAX_INTENTOS) return;
-	navigator.mediaDevices.getUserMedia({ video: true })
+	navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
 		.then(s => {
 			stream = s;
 			video.srcObject = s;
 			actualizarContador();
+			capturando = false;
+			listoDesde = 0;
+			faceidCheck.classList.remove('mostrar');
+			setAnilloEstado('', 'Colocá tu rostro dentro del círculo');
 			modal.classList.add('activo');
+			iniciarDeteccion();
 		})
 		.catch(() => alert('❌ No se pudo acceder a la cámara'));
 })
 
+function iniciarDeteccion() {
+	detenerDeteccion();
+	polling = setInterval(async () => {
+		if (capturando || video.readyState !== 4) return;
+
+		canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+		const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+
+		try {
+			const fd = new FormData();
+			fd.append('image', dataUrl);
+			const res = await fetch('http://localhost:5001/detectar_rostro', { method: 'POST', body: fd });
+			const data = await res.json();
+
+			if (!data.rostro) {
+				listoDesde = 0;
+				setAnilloEstado('', 'Colocá tu rostro dentro del círculo');
+			} else if (data.listo) {
+				if (!listoDesde) listoDesde = Date.now();
+				setAnilloEstado('listo', 'Mantené la posición...');
+				if (Date.now() - listoDesde > 700) {
+					capturarFoto(dataUrl);
+				}
+			} else {
+				listoDesde = 0;
+				const msg = !data.centrado ? 'Centrá tu rostro en el círculo' : 'Acercate un poco más';
+				setAnilloEstado('ajustando', msg);
+			}
+		} catch (error) {
+			// Si el backend de reconocimiento no responde, no bloqueamos: se
+			// puede seguir usando "Capturar manualmente".
+			listoDesde = 0;
+		}
+	}, 700);
+}
+
+function detenerDeteccion() {
+	if (polling) {
+		clearInterval(polling);
+		polling = null;
+	}
+}
+
 function cerrarModal() {
+	detenerDeteccion();
 	if (stream) {
 		stream.getTracks().forEach(t => t.stop());
 		stream = null;
@@ -40,9 +102,15 @@ function cerrarModal() {
 	modal.classList.remove('activo');
 }
 
-btnCapturar.addEventListener('click', () => {
-	canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-	const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+function capturarFoto(dataUrlPrecomputado) {
+	if (capturando) return;
+	capturando = true;
+	detenerDeteccion();
+
+	const dataUrl = dataUrlPrecomputado || (() => {
+		canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+		return canvas.toDataURL('image/jpeg', 0.9);
+	})();
 
 	base64Input.value        = dataUrl;
 	previewImg.src           = dataUrl;
@@ -59,8 +127,14 @@ btnCapturar.addEventListener('click', () => {
 	} else {
 		statusLabel.textContent = `✅ Foto capturada (${restantes} intento${restantes > 1 ? 's' : ''} restante${restantes > 1 ? 's' : ''})`;
 	}
-	cerrarModal();
-})
+
+	faceidCheck.classList.add('mostrar');
+	faceidStatus.textContent = '✅ ¡Listo!';
+
+	setTimeout(cerrarModal, 600);
+}
+
+btnCapturar.addEventListener('click', () => capturarFoto());
 
 document.getElementById('btn-cerrar-modal').addEventListener('click', cerrarModal);
 

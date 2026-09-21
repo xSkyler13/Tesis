@@ -19,7 +19,6 @@ $telefono           = $_POST['telefono'] ?? null;
 $direccion          = $_POST['direccion'] ?? null;
 $departamento_id    = $_POST['departamento_id'] ?? '';
 $tipo_residente_id  = $_POST['tipo_residente_id'] ?? '';
-$tipo_relacion      = 'Titular';
 $foto_base64        = $_POST['foto_base64'] ?? '';
 
 if (
@@ -90,6 +89,12 @@ try {
         $ruta_rostro
     ]);
     $residente_id = $conexion->lastInsertId();
+
+    // Solo el Propietario es Titular del departamento; el resto (inquilino,
+    // familiar, ocupante) son habitantes y no deben desplazar al titular.
+    $stmt = $conexion->prepare("SELECT nombre FROM tipo_residentes WHERE id = ?");
+    $stmt->execute([$tipo_residente_id]);
+    $tipo_relacion = ($stmt->fetchColumn() === 'Propietario') ? 'Titular' : 'Habitante';
 
     // RESIDENTE <-> DEPARTAMENTO
     $stmt = $conexion->prepare("

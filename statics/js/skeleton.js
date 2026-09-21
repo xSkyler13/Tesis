@@ -10,6 +10,24 @@ function skeletonFilasTabla(numColumnas, numFilas = 5) {
 	return html;
 }
 
+function skeletonDepartamentoCards(numItems = 4) {
+	let html = '';
+	for (let i = 0; i < numItems; i++) {
+		html += `
+			<div class="departamento-card skeleton-departamento-card">
+				<div class="skeleton-row-item">
+					<span class="skeleton skeleton-circle"></span>
+					<div class="skeleton-lines">
+						<div class="skeleton skeleton-text w-40"></div>
+						<div class="skeleton skeleton-text w-60"></div>
+					</div>
+				</div>
+			</div>
+		`;
+	}
+	return html;
+}
+
 function skeletonListaItems(claseItem, numItems = 4) {
 	let html = '';
 	for (let i = 0; i < numItems; i++) {

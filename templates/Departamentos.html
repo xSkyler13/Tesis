@@ -7,7 +7,7 @@
 	<link rel="stylesheet" href="../statics/css/style_dashboard.css">
 	<title>Departamentos</title>
 </head>
-<body>
+<body class="pagina-departamentos">
 
 	{% include 'partials/sidebar.html' %}
 
@@ -26,128 +26,160 @@
 						<li><a href="#" class="active">Departamentos</a></li>
 					</ul>
 				</div>
-				<div class="form-footer-right">
+				<!-- <div class="form-footer-right">
 					<button type="button" class="btn-reset" id="btn-exportar"><i class='bx bx-download'></i> Exportar</button>
 					<a href="./departamento" class="btn-primary"><i class='bx bx-plus'></i> Nuevo Departamento</a>
-				</div>
+				</div> -->
 			</div>
 
-			<div class="form-row">
-				<div class="content-data form-card">
-					<div class="head"><h3><i class='bx bx-filter-alt icon'></i> Filtros de Búsqueda</h3></div>
-					<div class="form-grid">
-						<div class="field">
-							<label for="f-torre">Torre</label>
-							<select id="f-torre">
-								<option value="">Todos</option>
-							</select>
-						</div>
-						<div class="field">
-							<label for="f-piso">Piso</label>
-							<select id="f-piso">
-								<option value="">Todos</option>
-							</select>
-						</div>
-						<div class="field">
-							<label for="f-estado">Estado</label>
-							<select id="f-estado">
-								<option value="">Todos</option>
-								<option>Activo</option>
-								<option>Inactivo</option>
-								<option>Mantenimiento</option>
-							</select>
-						</div>
-						<div class="field">
-							<label for="f-tipo">Tipo de Departamento</label>
-							<select id="f-tipo">
-								<option value="">Todos</option>
-								<option>Departamento</option>
-								<option>Dúplex</option>
-								<option>Penthouse</option>
-								<option>Estudio</option>
-							</select>
-						</div>
-						<div class="field span-2">
-							<label>Fecha de Registro</label>
-							<div class="range-fields">
-								<input type="date" id="f-fecha-desde">
-								<span>-</span>
-								<input type="date" id="f-fecha-hasta">
-							</div>
-						</div>
-					</div>
-					<div class="filtros-actions">
-						<button type="button" class="btn-reset" id="btn-limpiar-filtros"><i class='bx bx-reset'></i> Limpiar</button>
-						<button type="button" class="btn-save" id="btn-buscar"><i class='bx bx-search'></i> Buscar</button>
-					</div>
-				</div>
-					<div class="content-data form-card">
-						<div class="head"><h3 id="resumen-titulo"><i class='bx bx-bar-chart-alt-2 icon'></i> Resumen General</h3></div>
-						<div class="torre-preview-card" id="resumen-torre-card" style="display:none;">
-							<div class="torre-preview-icon" id="resumen-torre-icon">
-								<img id="resumen-torre-img" src="" alt="" style="display:none;">
-								<i class='bx bxs-buildings' id="resumen-torre-placeholder"></i>
-							</div>
-							<p class="torre-preview-nombre" id="resumen-torre-nombre">--</p>
-							<span class="torre-preview-estado badge-status success" id="resumen-torre-estado">Activo</span>
-						</div>
-						<ul class="torre-resumen">
-							<li><i class='bx bx-building-house'></i> <span class="label">Total Departamentos</span> <span class="value" id="resumen-total">--</span></li>
-							<li><i class='bx bx-check-circle'></i> <span class="label">Departamentos Activos</span> <span class="value" id="resumen-activos">--</span></li>
-							<li><i class='bx bx-x-circle'></i> <span class="label">Departamentos Inactivos</span> <span class="value" id="resumen-inactivos">--</span></li>
-							<li><i class='bx bx-ruler'></i> <span class="label">Área Total</span> <span class="badge-status info" id="resumen-area">--</span></li>
-						</ul>
-					</div>
-			</div>
+			<div class="dept-layout">
+			<div class="dept-main">
 
 			<div class="content-data form-card">
-				<div class="head">
-					<h3>Lista de Departamentos Registrados</h3>
-					<div class="list-head-actions">
+				<div class="head"><h3><i class='bx bx-filter-alt icon'></i> Filtros de Búsqueda</h3></div>
+				<div class="form-grid filtros-grid">
+					<div class="field">
+						<label for="f-torre">Torre</label>
+						<select id="f-torre">
+							<option value="">Todos</option>
+						</select>
+					</div>
+					<div class="field">
+						<label for="f-piso">Piso</label>
+						<select id="f-piso">
+							<option value="">Todos</option>
+						</select>
+					</div>
+					<div class="field">
+						<label for="f-estado">Estado</label>
+						<select id="f-estado">
+							<option value="">Todos</option>
+							<option>Activo</option>
+							<option>Inactivo</option>
+							<option>Mantenimiento</option>
+						</select>
+					</div>
+					<div class="field">
+						<label for="f-tipo">Tipo de Departamento</label>
+						<select id="f-tipo">
+							<option value="">Todos</option>
+							<option>Departamento</option>
+							<option>Dúplex</option>
+							<option>Penthouse</option>
+							<option>Estudio</option>
+						</select>
+					</div>
+					<div class="field span-2">
+						<label for="f-buscar">Buscar</label>
 						<div class="input-icon">
 							<i class='bx bx-search'></i>
-							<input type="text" id="f-buscar" placeholder="Buscar departamento...">
+							<input type="text" id="f-buscar" placeholder="Buscar por número de departamento, propietario, DNI...">
+						</div>
+					</div>
+					<div class="field span-2">
+						<label>Fecha de Registro</label>
+						<div class="range-fields">
+							<input type="date" id="f-fecha-desde">
+							<span>-</span>
+							<input type="date" id="f-fecha-hasta">
 						</div>
 					</div>
 				</div>
-				<div class="data-table-wrap">
-					<table class="data-table">
-						<thead>
-							<tr>
-								<th>#</th>
-								<th>Departamento</th>
-								<th>Torre</th>
-								<th>Piso</th>
-								<th>Tipo</th>
-								<th>Área (m²)</th>
-								<th>Habitaciones</th>
-								<th>Baños</th>
-								<th>Estacionamiento</th>
-								<th>Estado</th>
-								<th>Propietario</th>
-								<th>Fecha de Registro</th>
-								<th>Acciones</th>
-							</tr>
-						</thead>
-						<tbody id="tabla-departamentos">
-							<tr><td colspan="13" class="table-empty">Cargando...</td></tr>
-						</tbody>
-					</table>
+				<div class="filtros-actions">
+					<button type="button" class="btn-reset" id="btn-exportar"><i class='bx bx-download'></i> Exportar</button>
+					<a href="./departamento" class="btn-primary"><i class='bx bx-plus'></i> Nuevo Departamento</a>
+					<button type="button" class="btn-reset" id="btn-limpiar-filtros"><i class='bx bx-reset'></i> Limpiar</button>
+					<button type="button" class="btn-save" id="btn-buscar"><i class='bx bx-search'></i> Buscar</button>
 				</div>
-				<div class="table-footer">
-					<span id="paginacion-info">Mostrando 0 de 0 departamentos</span>
-					<div class="pagination-controls">
-						<select id="per-page">
-							<option value="10">10 por página</option>
-							<option value="25">25 por página</option>
-							<option value="50">50 por página</option>
-						</select>
-						<button type="button" id="btn-prev" class="btn-page"><i class='bx bx-chevron-left'></i></button>
-						<span id="paginas" class="paginas"></span>
-						<button type="button" id="btn-next" class="btn-page"><i class='bx bx-chevron-right'></i></button>
+			</div>
+
+			<div class="torre-tabs" id="torre-tabs"></div>
+
+			<div class="explorer-layout">
+				<div class="content-data form-card piso-panel">
+					<div class="head">
+						<h3 id="piso-panel-titulo">Pisos</h3>
+					</div>
+					<ul class="piso-list" id="piso-list"></ul>
+				</div>
+
+				<div class="content-data form-card cards-panel">
+					<div class="head"><h3 id="cards-panel-titulo">Departamentos</h3></div>
+					<div class="departamento-grid" id="departamento-grid"></div>
+					<div class="departamento-legend">
+						<span><i class="legend-dot success"></i> Activo</span>
+						<span><i class="legend-dot warning"></i> Mantenimiento</span>
+						<span><i class="legend-dot danger"></i> Inactivo</span>
+					</div>
+					<p class="departamento-grid-count" id="departamento-grid-count">0 departamentos en este piso</p>
+				</div>
+
+			</div>
+		</div>
+
+			<div class="content-data form-card detail-panel" id="detail-panel">
+				<p class="detail-panel-empty" id="detail-panel-empty">Seleccioná un departamento para ver el detalle</p>
+				<div id="detail-panel-body" style="display:none;">
+					<div class="detail-panel-head">
+						<div class="detail-panel-icon"><i class='bx bxs-buildings'></i></div>
+						<div>
+							<p class="detail-panel-numero">Departamento <span id="detalle-numero">--</span></p>
+							<span class="badge-status" id="detalle-estado-badge">--</span>
+						</div>
+					</div>
+
+					<div class="detail-tabs">
+						<button type="button" class="detail-tab activo" data-tab="info">Información</button>
+						<button type="button" class="detail-tab" data-tab="residentes">Residentes <span id="tab-residentes-count"></span></button>
+					</div>
+
+					<div class="detail-tab-panel" data-tab-panel="info">
+						<div class="content-data form-card">
+							<h4>Información general</h4>
+							<ul class="torre-resumen">
+								<li><i class='bx bxs-buildings'></i> <span class="label">Torre</span> <span class="value" id="detalle-torre">--</span></li>
+								<li><i class='bx bx-layer'></i> <span class="label">Piso</span> <span class="value" id="detalle-piso">--</span></li>
+								<li><i class='bx bx-ruler'></i> <span class="label">Área</span> <span class="value" id="detalle-area">--</span></li>
+								<li><i class='bx bx-bed'></i> <span class="label">Habitaciones</span> <span class="value" id="detalle-habitaciones">--</span></li>
+								<li><i class='bx bx-bath'></i> <span class="label">Baños</span> <span class="value" id="detalle-banos">--</span></li>
+								<li><i class='bx bx-car'></i> <span class="label">Estacionamiento</span> <span class="value" id="detalle-estacionamiento">--</span></li>
+								<li><i class='bx bx-category'></i> <span class="label">Tipo de departamento</span> <span class="value" id="detalle-tipo">--</span></li>
+							</ul>
+						</div>
+
+						<div class="content-data form-card">
+							<h4>Propietario</h4>
+							<ul class="torre-resumen" id="detalle-propietario-body">
+								<li><i class='bx bx-user'></i> <span class="label">Nombre</span> <span class="value" id="detalle-prop-nombre">--</span></li>
+								<li><i class='bx bx-id-card'></i> <span class="label">DNI</span> <span class="value" id="detalle-prop-dni">--</span></li>
+								<li><i class='bx bx-phone'></i> <span class="label">Teléfono</span> <span class="value" id="detalle-prop-celular">--</span></li>
+								<li><i class='bx bx-envelope'></i> <span class="label">Correo</span> <span class="value" id="detalle-prop-correo">--</span></li>
+							</ul>
+						</div>
+
+						<div class="content-data form-card">
+							<h4>Estado del departamento <span class="badge-status success checklist-badge" id="checklist-badge">Completo</span></h4>
+							<ul class="checklist" id="checklist">
+								<li data-check="propietario"><i class='bx bx-check-circle'></i> Propietario registrado</li>
+								<li data-check="residentes"><i class='bx bx-check-circle'></i> Residentes registrados (<span id="chk-residentes-n">0</span>)</li>
+								<li data-check="estacionamiento"><i class='bx bx-check-circle'></i> Estacionamiento asignado</li>
+								<li data-check="contacto"><i class='bx bx-check-circle'></i> Contacto de emergencia</li>
+							</ul>
+						</div>
+					</div>
+
+					<div class="detail-tab-panel" data-tab-panel="residentes" style="display:none;">
+						<ul class="mini-lista" id="detalle-residentes-lista"></ul>
+					</div>
+
+					<div class="detail-panel-actions">
+						<button type="button" class="btn-icon-edit" id="btn-detalle-editar" title="Editar"><i class='bx bx-edit'></i></button>
+						<a href="./Residentes" class="btn-icon-edit" id="btn-detalle-residentes" title="Ver residentes"><i class='bx bx-user'></i></a>
+						<button type="button" class="btn-icon-edit" id="btn-detalle-eliminar" title="Eliminar"><i class='bx bx-trash'></i></button>
 					</div>
 				</div>
 			</div>
+		</div>
 
 			<!-- MODAL CONFIRMAR ELIMINAR -->
 			<div id="modal-eliminar" class="modal-overlay">

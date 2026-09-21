@@ -1,14 +1,36 @@
-let paginaActual = 1;
-let totalPaginas = 1;
+// ===== ESTADO GLOBAL =====
+let torresCache = [];
+let torreSeleccionada = null;        // id de la torre activa
+let pisoSeleccionado = null;         // número de piso activo (int)
+let departamentoSeleccionado = null; // id del departamento activo
+let departamentosPiso = [];          // filas de la torre activa (todos los pisos)
+let conteoPorTorre = {};             // { nombreTorre: cantidadRealDeDepartamentos }
 
 const torreSelect = document.getElementById('f-torre');
-const pisoSelect  = document.getElementById('f-piso');
+const pisoSelect = document.getElementById('f-piso');
+
+function valorDe(id) {
+	const el = document.getElementById(id);
+	return el ? el.value : '';
+}
+
+function badgeEstado(estado) {
+	const clase = estado === 'Activo' ? 'success' : estado === 'Mantenimiento' ? 'warning' : 'danger';
+	return `<span class="badge-status ${clase}">${estado}</span>`;
+}
+
+function claseEstado(estado) {
+	return estado === 'Activo' ? 'success' : estado === 'Mantenimiento' ? 'warning' : 'danger';
+}
+
+// ===== CARGA DE TORRES =====
 
 async function cargarTorres() {
 	try {
 		const response = await fetch('http://localhost:8000/templates/api_torres.php');
-		const torres = await response.json();
-		torres.forEach(t => {
+		torresCache = await response.json();
+		torreSelect.innerHTML = '<option value="">Todos</option>';
+		torresCache.forEach(t => {
 			const option = document.createElement('option');
 			option.value = t.id;
 			option.textContent = t.nombre;
@@ -18,172 +40,333 @@ async function cargarTorres() {
 		console.error(error);
 	}
 }
-cargarTorres();
 
-function valorDe(id) {
-	const el = document.getElementById(id);
-	return el ? el.value : '';
+async function cargarConteoPorTorre() {
+	try {
+		const response = await fetch('http://localhost:8000/templates/api_departamentos_lista.php?per_page=100');
+		const result = await response.json();
+		conteoPorTorre = {};
+		result.data.forEach(d => {
+			conteoPorTorre[d.torre_nombre] = (conteoPorTorre[d.torre_nombre] || 0) + 1;
+		})
+	} catch (error) {
+		console.error(error);
+	}
 }
 
-function construirQuery(page) {
-	const params = new URLSearchParams();
-	if (torreSelect.value) params.set('torre_id', torreSelect.value);
-	if (pisoSelect.value) params.set('piso', pisoSelect.value);
-	if (valorDe('f-estado')) params.set('estado', valorDe('f-estado'));
-	if (valorDe('f-tipo')) params.set('tipo', valorDe('f-tipo'));
-	if (valorDe('f-numero-desde')) params.set('numero_desde', valorDe('f-numero-desde'));
-	if (valorDe('f-numero-hasta')) params.set('numero_hasta', valorDe('f-numero-hasta'));
-	if (valorDe('f-area-desde')) params.set('area_desde', valorDe('f-area-desde'));
-	if (valorDe('f-area-hasta')) params.set('area_hasta', valorDe('f-area-hasta'));
-	if (valorDe('f-fecha-desde')) params.set('fecha_desde', valorDe('f-fecha-desde'));
-	if (valorDe('f-fecha-hasta')) params.set('fecha_hasta', valorDe('f-fecha-hasta'));
-	if (valorDe('f-buscar')) params.set('buscar', valorDe('f-buscar'));
-	params.set('page', page);
-	params.set('per_page', valorDe('per-page') || 10);
-	return params.toString();
-}
+function renderTorreTabs() {
+	const cont = document.getElementById('torre-tabs');
 
-function badgeEstado(estado) {
-	const clase = estado === 'Activo' ? 'success' : estado === 'Mantenimiento' ? 'warning' : 'info';
-	return `<span class="badge-status ${clase}">${estado}</span>`;
-}
-
-function formatFecha(fechaStr) {
-	const d = new Date(fechaStr.replace(' ', 'T'));
-	return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
-}
-
-function renderTabla(filas, offset) {
-	const tbody = document.getElementById('tabla-departamentos');
-
-	if (filas.length === 0) {
-		tbody.innerHTML = '<tr><td colspan="13" class="table-empty">No se encontraron departamentos con esos filtros</td></tr>';
+	if (torresCache.length === 0) {
+		cont.innerHTML = '<p class="table-empty">No hay torres registradas</p>';
 		return;
 	}
 
-	tbody.innerHTML = filas.map((d, i) => `
-		<tr>
-			<td>${offset + i + 1}</td>
-			<td><a href="#" class="link-action">${d.numero}</a></td>
-			<td>${d.torre_nombre}</td>
-			<td>${d.piso}</td>
-			<td><span class="badge-status info">${d.tipo || '--'}</span></td>
-			<td>${d.area ?? '--'}</td>
-			<td>${d.habitaciones ?? '--'}</td>
-			<td>${d.banos ?? '--'}</td>
-			<td>${d.estacionamiento ?? '--'}</td>
-			<td>${badgeEstado(d.estado)}</td>
-			<td>${d.propietario && d.propietario.trim() ? d.propietario : '–'}</td>
-			<td>${formatFecha(d.fecha_creacion)}</td>
-			<td class="acciones-cell">
-				<button type="button" class="btn-icon-edit btn-editar" data-id="${d.id}" title="Editar"><i class='bx bx-edit'></i></button>
-				<button type="button" class="btn-icon-edit btn-eliminar" data-id="${d.id}" data-numero="${d.numero}" title="Eliminar"><i class='bx bx-trash'></i></button>
-			</td>
-		</tr>
+	cont.innerHTML = torresCache.map(t => `
+		<button type="button" class="torre-tab-card${String(t.id) === String(torreSeleccionada) ? ' activo' : ''}" data-id="${t.id}">
+			<span class="torre-tab-icon"><i class='bx bxs-buildings'></i></span>
+			<div>
+				<strong>${t.nombre}</strong>
+				<span>${conteoPorTorre[t.nombre] ?? 0} departamentos</span>
+			</div>
+		</button>
 	`).join('');
 }
 
-function renderResumen(resumen, torre) {
-	document.getElementById('resumen-total').textContent = resumen.total;
-	document.getElementById('resumen-activos').textContent = resumen.activos ?? 0;
-	document.getElementById('resumen-inactivos').textContent = resumen.inactivos ?? 0;
-	document.getElementById('resumen-area').textContent = `${parseFloat(resumen.area_total).toLocaleString('es-ES')} m²`;
+document.getElementById('torre-tabs').addEventListener('click', (e) => {
+	const btn = e.target.closest('.torre-tab-card');
+	if (!btn) return;
+	if (String(btn.dataset.id) === String(torreSeleccionada)) return;
 
-	const titulo = document.getElementById('resumen-titulo');
-	const torreCard = document.getElementById('resumen-torre-card');
-
-	if (torre) {
-		titulo.innerHTML = `<i class='bx bx-bar-chart-alt-2 icon'></i> Resumen de la Torre`;
-		torreCard.style.display = 'flex';
-
-		document.getElementById('resumen-torre-nombre').textContent = torre.nombre;
-
-		const img = document.getElementById('resumen-torre-img');
-		const placeholder = document.getElementById('resumen-torre-placeholder');
-		if (torre.imagen) {
-			img.src = '/' + torre.imagen;
-			img.style.display = 'block';
-			placeholder.style.display = 'none';
-		} else {
-			img.style.display = 'none';
-			placeholder.style.display = 'block';
-		}
-
-		const estadoEl = document.getElementById('resumen-torre-estado');
-		const activa = torre.activo == 1;
-		estadoEl.textContent = activa ? 'Activo' : 'Inactivo';
-		estadoEl.className = 'torre-preview-estado badge-status ' + (activa ? 'success' : 'warning');
-	} else {
-		titulo.innerHTML = `<i class='bx bx-bar-chart-alt-2 icon'></i> Resumen General`;
-		torreCard.style.display = 'none';
-	}
-}
-
-function renderPisos(pisos) {
-	if (pisoSelect.dataset.cargado) return;
-	pisos.forEach(p => {
-		const option = document.createElement('option');
-		option.value = p;
-		option.textContent = `Piso ${p}`;
-		pisoSelect.appendChild(option);
-	})
-	pisoSelect.dataset.cargado = '1';
-}
-
-function renderPaginacion(total, page, perPage) {
-	totalPaginas = Math.max(1, Math.ceil(total / perPage));
-	paginaActual = page;
-
-	const desde = total === 0 ? 0 : (page - 1) * perPage + 1;
-	const hasta = Math.min(page * perPage, total);
-	document.getElementById('paginacion-info').textContent = `Mostrando ${desde} a ${hasta} de ${total} departamentos`;
-	document.getElementById('paginas').textContent = `${page} / ${totalPaginas}`;
-
-	document.getElementById('btn-prev').disabled = page <= 1;
-	document.getElementById('btn-next').disabled = page >= totalPaginas;
-}
-
-async function cargarDepartamentos(page = 1) {
-	const tbody = document.getElementById('tabla-departamentos');
-	tbody.innerHTML = skeletonFilasTabla(13);
-
-	try {
-		const query = construirQuery(page);
-		const response = await fetch(`http://localhost:8000/templates/api_departamentos_lista.php?${query}`);
-		const result = await response.json();
-
-		const perPage = parseInt(document.getElementById('per-page').value);
-		renderTabla(result.data, (page - 1) * perPage);
-		renderResumen(result.resumen, result.torre);
-		renderPisos(result.pisos_disponibles);
-		renderPaginacion(result.total, result.page, result.per_page);
-	} catch (error) {
-		console.error(error);
-		tbody.innerHTML = '<tr><td colspan="13" class="table-empty">Error al cargar los departamentos</td></tr>';
-	}
-}
-cargarDepartamentos();
-
-document.getElementById('btn-buscar').addEventListener('click', () => cargarDepartamentos(1));
-document.getElementById('f-buscar').addEventListener('keyup', (e) => {
-	if (e.key === 'Enter') cargarDepartamentos(1);
+	torreSeleccionada = btn.dataset.id;
+	torreSelect.value = torreSeleccionada;
+	pisoSeleccionado = null;
+	cargarDepartamentos();
 })
-document.getElementById('per-page').addEventListener('change', () => cargarDepartamentos(1));
+
+// ===== FILTROS =====
+
+function construirQuery() {
+	const params = new URLSearchParams();
+	if (torreSeleccionada) params.set('torre_id', torreSeleccionada);
+	if (valorDe('f-estado')) params.set('estado', valorDe('f-estado'));
+	if (valorDe('f-tipo')) params.set('tipo', valorDe('f-tipo'));
+	if (valorDe('f-fecha-desde')) params.set('fecha_desde', valorDe('f-fecha-desde'));
+	if (valorDe('f-fecha-hasta')) params.set('fecha_hasta', valorDe('f-fecha-hasta'));
+	if (valorDe('f-buscar')) params.set('buscar', valorDe('f-buscar'));
+	params.set('page', 1);
+	params.set('per_page', 100);
+	return params.toString();
+}
+
+function aplicarFiltros() {
+	torreSeleccionada = torreSelect.value || (torresCache[0] && torresCache[0].id) || null;
+	torreSelect.value = torreSeleccionada || '';
+	if (valorDe('f-piso')) {
+		pisoSeleccionado = parseInt(valorDe('f-piso'), 10);
+	}
+	cargarDepartamentos();
+}
+
+document.getElementById('btn-buscar').addEventListener('click', aplicarFiltros);
+document.getElementById('f-buscar').addEventListener('keyup', (e) => {
+	if (e.key === 'Enter') aplicarFiltros();
+})
 
 document.getElementById('btn-limpiar-filtros').addEventListener('click', () => {
-	const ids = ['f-torre', 'f-piso', 'f-estado', 'f-tipo', 'f-numero-desde', 'f-numero-hasta', 'f-area-desde', 'f-area-hasta', 'f-fecha-desde', 'f-fecha-hasta', 'f-buscar'];
+	const ids = ['f-estado', 'f-tipo', 'f-fecha-desde', 'f-fecha-hasta', 'f-buscar'];
 	ids.forEach(id => {
 		const el = document.getElementById(id);
 		if (el) el.value = '';
 	})
-	cargarDepartamentos(1);
+	pisoSeleccionado = null;
+	cargarDepartamentos();
 })
 
-document.getElementById('btn-prev').addEventListener('click', () => {
-	if (paginaActual > 1) cargarDepartamentos(paginaActual - 1);
+// ===== PISOS =====
+
+function agruparPorPiso(filas) {
+	const mapa = new Map();
+	filas.forEach(d => {
+		const piso = Number(d.piso);
+		if (!mapa.has(piso)) mapa.set(piso, []);
+		mapa.get(piso).push(d);
+	})
+	return [...mapa.entries()].sort((a, b) => a[0] - b[0]);
+}
+
+function renderPisoList() {
+	const cont = document.getElementById('piso-list');
+	const grupos = agruparPorPiso(departamentosPiso);
+
+	if (grupos.length === 0) {
+		cont.innerHTML = '<li class="table-empty">Sin departamentos registrados</li>';
+		pisoSelect.innerHTML = '<option value="">Todos</option>';
+		pisoSeleccionado = null;
+		return;
+	}
+
+	if (pisoSeleccionado === null || !grupos.some(([p]) => p === pisoSeleccionado)) {
+		pisoSeleccionado = grupos[0][0];
+	}
+
+	cont.innerHTML = grupos.map(([piso, filas]) => `
+		<li class="piso-item${piso === pisoSeleccionado ? ' activo' : ''}" data-piso="${piso}">
+			<span>Piso ${piso}</span>
+			<span class="count">${filas.length} depto${filas.length === 1 ? '' : 's'}</span>
+		</li>
+	`).join('');
+
+	pisoSelect.innerHTML = '<option value="">Todos</option>' + grupos.map(([piso]) =>
+		`<option value="${piso}">Piso ${piso}</option>`
+	).join('');
+	pisoSelect.value = pisoSeleccionado;
+
+	const torre = torresCache.find(t => String(t.id) === String(torreSeleccionada));
+	document.getElementById('piso-panel-titulo').textContent = torre ? `Pisos - ${torre.nombre}` : 'Pisos';
+}
+
+document.getElementById('piso-list').addEventListener('click', (e) => {
+	const item = e.target.closest('.piso-item');
+	if (!item || !item.dataset.piso) return;
+
+	pisoSeleccionado = parseInt(item.dataset.piso, 10);
+	pisoSelect.value = pisoSeleccionado;
+	renderPisoList();
+	renderGrid();
 })
-document.getElementById('btn-next').addEventListener('click', () => {
-	if (paginaActual < totalPaginas) cargarDepartamentos(paginaActual + 1);
+
+// ===== GRILLA DE DEPARTAMENTOS =====
+
+function renderGrid() {
+	const cont = document.getElementById('departamento-grid');
+	const filas = departamentosPiso.filter(d => Number(d.piso) === pisoSeleccionado);
+
+	if (filas.length === 0) {
+		cont.innerHTML = '<p class="table-empty">No hay departamentos en este piso</p>';
+	} else {
+		cont.innerHTML = filas.map(d => `
+			<div class="departamento-card${String(d.id) === String(departamentoSeleccionado) ? ' activo' : ''}" data-id="${d.id}">
+				<div class="departamento-card-head">
+					<span class="departamento-card-icon"><i class='bx bxs-buildings'></i></span>
+					<span class="departamento-card-numero">${d.numero}</span>
+					${badgeEstado(d.estado)}
+				</div>
+				<p class="departamento-card-area">${d.area ? parseFloat(d.area).toFixed(2) + ' m²' : 'Área no registrada'}</p>
+				<div class="departamento-card-meta">
+					<span><i class='bx bx-bed'></i> ${d.habitaciones ?? '-'}</span>
+					<span><i class='bx bx-bath'></i> ${d.banos ?? '-'}</span>
+					<span><i class='bx bx-car'></i> ${d.estacionamiento ? '1' : '0'}</span>
+				</div>
+			</div>
+		`).join('');
+	}
+
+	document.getElementById('cards-panel-titulo').textContent = pisoSeleccionado !== null ? `Piso ${pisoSeleccionado}` : 'Departamentos';
+	document.getElementById('departamento-grid-count').textContent = `${filas.length} departamento${filas.length === 1 ? '' : 's'} en este piso`;
+}
+
+document.getElementById('departamento-grid').addEventListener('click', (e) => {
+	const card = e.target.closest('.departamento-card');
+	if (!card) return;
+	seleccionarDepartamento(card.dataset.id);
+})
+
+// ===== CARGA PRINCIPAL =====
+
+async function cargarDepartamentos() {
+	document.getElementById('piso-list').innerHTML = skeletonListaItems('piso-item', 4);
+	document.getElementById('departamento-grid').innerHTML = skeletonDepartamentoCards(4);
+
+	try {
+		const query = construirQuery();
+		const response = await fetch(`http://localhost:8000/templates/api_departamentos_lista.php?${query}`);
+		const result = await response.json();
+
+		departamentosPiso = result.data;
+
+		if (departamentoSeleccionado && !departamentosPiso.some(d => String(d.id) === String(departamentoSeleccionado))) {
+			departamentoSeleccionado = null;
+			document.getElementById('detail-panel-empty').style.display = 'block';
+			document.getElementById('detail-panel-body').style.display = 'none';
+		}
+
+		await cargarConteoPorTorre();
+		renderTorreTabs();
+		renderPisoList();
+		renderGrid();
+	} catch (error) {
+		console.error(error);
+		document.getElementById('piso-list').innerHTML = '<li class="table-empty">Error al cargar</li>';
+		document.getElementById('departamento-grid').innerHTML = '<p class="table-empty">Error al cargar los departamentos</p>';
+	}
+}
+
+async function iniciar() {
+	await cargarTorres();
+	if (torresCache.length > 0) {
+		torreSeleccionada = torresCache[0].id;
+		torreSelect.value = torreSeleccionada;
+	}
+	await cargarDepartamentos();
+}
+iniciar();
+
+// ===== PANEL DE DETALLE =====
+
+function mostrarDetallePanelCargando() {
+	document.getElementById('detail-panel-empty').style.display = 'none';
+	document.getElementById('detail-panel-body').style.display = 'block';
+	document.getElementById('detalle-numero').textContent = '...';
+	document.getElementById('detalle-residentes-lista').innerHTML = skeletonListaItems('mini-lista-item', 3);
+}
+
+function limpiarDetalle() {
+	departamentoSeleccionado = null;
+	document.getElementById('detail-panel-empty').style.display = 'block';
+	document.getElementById('detail-panel-body').style.display = 'none';
+	renderGrid();
+}
+
+function renderDetalle(d, residentes) {
+	document.getElementById('detalle-numero').textContent = d.numero;
+
+	const badge = document.getElementById('detalle-estado-badge');
+	badge.className = 'badge-status ' + claseEstado(d.estado);
+	badge.textContent = d.estado;
+
+	const torre = torresCache.find(t => String(t.id) === String(d.torre_id));
+	document.getElementById('detalle-torre').textContent = torre ? torre.nombre : '--';
+	document.getElementById('detalle-piso').textContent = d.piso;
+	document.getElementById('detalle-area').textContent = d.area ? `${parseFloat(d.area).toFixed(2)} m²` : '--';
+	document.getElementById('detalle-habitaciones').textContent = d.habitaciones ?? '--';
+	document.getElementById('detalle-banos').textContent = d.banos ?? '--';
+	document.getElementById('detalle-estacionamiento').textContent = d.estacionamiento || 'Sin asignar';
+	document.getElementById('detalle-tipo').textContent = d.tipo || '--';
+
+	const tieneDueno = !!d.propietario_id;
+	document.getElementById('detalle-prop-nombre').textContent = tieneDueno ? d.propietario_nombre : 'Sin propietario asignado';
+	document.getElementById('detalle-prop-dni').textContent = tieneDueno ? (d.propietario_dni || '--') : '--';
+	document.getElementById('detalle-prop-celular').textContent = tieneDueno ? (d.propietario_celular || '--') : '--';
+	document.getElementById('detalle-prop-correo').textContent = tieneDueno ? (d.propietario_correo || '--') : '--';
+
+	document.getElementById('tab-residentes-count').textContent = `(${residentes.length})`;
+	document.getElementById('chk-residentes-n').textContent = residentes.length;
+
+	const listaResidentes = document.getElementById('detalle-residentes-lista');
+	if (residentes.length === 0) {
+		listaResidentes.innerHTML = '<li class="table-empty">Sin residentes registrados</li>';
+	} else {
+		listaResidentes.innerHTML = residentes.map(r => `
+			<li>
+				<i class='bx bxs-user-circle'></i>
+				<div>
+					<strong>${r.nombre} <em class="badge-status ${r.tipo_relacion === 'Titular' ? 'success' : 'info'}">${r.tipo_relacion === 'Titular' ? 'Propietario' : r.tipo_nombre}</em></strong>
+					<span>${r.celular || '--'} · ${r.correo || '--'}</span>
+				</div>
+			</li>
+		`).join('');
+	}
+
+	const checks = {
+		propietario: tieneDueno,
+		residentes: residentes.length > 0,
+		estacionamiento: !!(d.estacionamiento && d.estacionamiento.trim()),
+		contacto: !!(d.telefono_contacto && d.telefono_contacto.trim()),
+	};
+	document.querySelectorAll('#checklist li').forEach(li => {
+		li.classList.toggle('incompleto', !checks[li.dataset.check]);
+	})
+
+	const completo = Object.values(checks).every(Boolean);
+	const badgeChecklist = document.getElementById('checklist-badge');
+	badgeChecklist.textContent = completo ? 'Completo' : 'Incompleto';
+	badgeChecklist.className = 'badge-status checklist-badge ' + (completo ? 'success' : 'warning');
+}
+
+async function seleccionarDepartamento(id) {
+	departamentoSeleccionado = id;
+	renderGrid();
+	mostrarDetallePanelCargando();
+
+	try {
+		const [detalleRes, residentesRes] = await Promise.all([
+			fetch(`http://localhost:8000/templates/api_departamento_detalle.php?id=${id}`),
+			fetch(`http://localhost:8000/templates/api_residentes_por_departamento.php?departamento_id=${id}`),
+		]);
+		const detalle = await detalleRes.json();
+		const residentes = await residentesRes.json();
+
+		if (!detalle.success) {
+			limpiarDetalle();
+			return;
+		}
+
+		renderDetalle(detalle.departamento, residentes);
+	} catch (error) {
+		console.error(error);
+		limpiarDetalle();
+	}
+}
+
+document.querySelectorAll('.detail-tab').forEach(btn => {
+	btn.addEventListener('click', () => {
+		document.querySelectorAll('.detail-tab').forEach(b => b.classList.remove('activo'));
+		btn.classList.add('activo');
+		document.querySelectorAll('.detail-tab-panel').forEach(panel => {
+			panel.style.display = panel.dataset.tabPanel === btn.dataset.tab ? 'block' : 'none';
+		})
+	})
+})
+
+document.getElementById('btn-detalle-editar').addEventListener('click', () => {
+	if (departamentoSeleccionado) abrirModalEditar(departamentoSeleccionado);
+})
+
+document.getElementById('btn-detalle-eliminar').addEventListener('click', () => {
+	if (!departamentoSeleccionado) return;
+	const d = departamentosPiso.find(x => String(x.id) === String(departamentoSeleccionado));
+	abrirModalEliminar(departamentoSeleccionado, d ? d.numero : '');
 })
 
 // ===== MODAL EDITAR =====
@@ -275,19 +458,6 @@ async function abrirModalEditar(id) {
 	}
 }
 
-document.getElementById('tabla-departamentos').addEventListener('click', (e) => {
-	const btnEditar = e.target.closest('.btn-editar');
-	if (btnEditar) {
-		abrirModalEditar(btnEditar.dataset.id);
-		return;
-	}
-
-	const btnEliminar = e.target.closest('.btn-eliminar');
-	if (btnEliminar) {
-		abrirModalEliminar(btnEliminar.dataset.id, btnEliminar.dataset.numero);
-	}
-})
-
 document.getElementById('btn-cancelar-editar').addEventListener('click', cerrarModalEditar);
 modalEditar.addEventListener('click', (e) => {
 	if (e.target === modalEditar) cerrarModalEditar();
@@ -297,6 +467,7 @@ formEditar.addEventListener('submit', async (e) => {
 	e.preventDefault();
 	try {
 		const formData = new FormData(formEditar);
+		const idEditado = document.getElementById('edit-id').value;
 		const response = await fetch('http://localhost:8000/templates/api_departamento_editar.php', {
 			method: 'POST',
 			body: formData
@@ -305,7 +476,10 @@ formEditar.addEventListener('submit', async (e) => {
 
 		if (result.success) {
 			cerrarModalEditar();
-			cargarDepartamentos(paginaActual);
+			await cargarDepartamentos();
+			if (String(idEditado) === String(departamentoSeleccionado)) {
+				seleccionarDepartamento(idEditado);
+			}
 		} else {
 			mostrarMensajeModal(result.message || 'No se pudo actualizar el departamento', 'error');
 		}
@@ -314,6 +488,8 @@ formEditar.addEventListener('submit', async (e) => {
 		mostrarMensajeModal('Error al actualizar el departamento', 'error');
 	}
 })
+
+// ===== MODAL ELIMINAR =====
 
 const modalEliminar = document.getElementById('modal-eliminar');
 let idAEliminar = null;
@@ -346,10 +522,12 @@ document.getElementById('btn-confirmar-eliminar').addEventListener('click', asyn
 		});
 		const result = await response.json();
 
+		const eraElSeleccionado = String(idAEliminar) === String(departamentoSeleccionado);
 		cerrarModalEliminar();
 
 		if (result.success) {
-			cargarDepartamentos(paginaActual);
+			if (eraElSeleccionado) limpiarDetalle();
+			cargarDepartamentos();
 		} else {
 			alert(result.message || 'No se pudo eliminar el departamento');
 		}

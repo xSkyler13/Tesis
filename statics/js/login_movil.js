@@ -1,6 +1,7 @@
 const video = document.getElementById('video');
-const overlay = document.getElementById('overlay');
-const octx = overlay.getContext('2d');
+const faceSection = document.getElementById('faceSection');
+const faceidRing = document.getElementById('faceid-ring');
+const faceidCheck = document.getElementById('faceid-check');
 const statusDiv = document.getElementById('status');
 
 let stream = null;
@@ -22,20 +23,15 @@ grab.height = 350;
 
 const gctx = grab.getContext('2d');
 
-function drawBoxes(faces, color) {
-    octx.clearRect(0, 0, overlay.width, overlay.height);
-    (faces || []).forEach(f => {
-        octx.strokeStyle = color;
-        octx.lineWidth = 3;
-        octx.strokeRect(f.left, f.top, f.right - f.left, f.bottom - f.top);
-    });
+function setAnilloEstado(estado) {
+    faceidRing.className = 'faceid-ring' + (estado ? ` ${estado}` : '');
 }
 
 async function ingresar() {
     document.getElementById("loginSection").style.display = "none";
-    document.getElementById("faceSection").style.display = "block";
+    faceSection.classList.add('activo');
     try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
         video.srcObject = stream;
     } catch (error) {
         statusDiv.innerHTML = "❌ No se pudo acceder a la cámara";
@@ -47,10 +43,11 @@ function cerrarReconocimiento() {
         stream.getTracks().forEach(track => track.stop());
         stream = null;
     }
-    octx.clearRect(0, 0, overlay.width, overlay.height);
-    document.getElementById("faceSection").style.display = "none";
+    setAnilloEstado('');
+    faceidCheck.classList.remove('mostrar');
+    faceSection.classList.remove('activo');
     document.getElementById("loginSection").style.display = "block";
-    statusDiv.className = "status esperando";
+    statusDiv.className = "faceid-status";
     statusDiv.innerHTML = "👀 Esperando detección de rostro...";
 }
 
@@ -85,8 +82,9 @@ async function tick() {
         const data = await res.json();
         switch (data.status) {
             case 'approved':
-                drawBoxes(data.faces, "#28a745");
-                statusDiv.className = "status acceso";
+                setAnilloEstado('listo');
+                faceidCheck.classList.add('mostrar');
+                statusDiv.className = "faceid-status";
                 statusDiv.innerHTML = `✅ ¡Bienvenido ${data.name}!
                 <br>
                 <small> Acceso concedido </small>`;
@@ -100,16 +98,18 @@ async function tick() {
                 }, 4000);
                 break;
             case 'challenge':
-                drawBoxes(data.faces, "#007bff");
-                statusDiv.className = "status reto";
+                faceidCheck.classList.remove('mostrar');
+                setAnilloEstado('ajustando');
+                statusDiv.className = "faceid-status";
                 statusDiv.innerHTML = `🔐 ${data.name}
                 <br>
                 Verificación:
                 <b>${data.instruction}</b>`;
                 break;
             case 'unknown':
-                drawBoxes(data.faces, "#dc3545");
-                statusDiv.className = "status denegado";
+                faceidCheck.classList.remove('mostrar');
+                setAnilloEstado('error');
+                statusDiv.className = "faceid-status";
                 statusDiv.innerHTML = "❌ Persona no registrada";
                 if (Date.now() > unknownCapturedUntil) {
                     unknownCapturedUntil = Date.now() + 10000;
@@ -123,8 +123,9 @@ async function tick() {
                 }
                 break;
             default:
-                octx.clearRect(0, 0, overlay.width, overlay.height);
-                statusDiv.className = "status esperando";
+                faceidCheck.classList.remove('mostrar');
+                setAnilloEstado('');
+                statusDiv.className = "faceid-status";
                 statusDiv.innerHTML = "👀 Esperando detección de rostro...";
         }
     } catch (error) { console.log(error);}

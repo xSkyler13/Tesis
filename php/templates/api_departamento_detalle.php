@@ -14,9 +14,14 @@ if (empty($id)) {
 }
 
 $stmt = $conexion->prepare("
-    SELECT d.*, rd.residente_id AS propietario_id
+    SELECT d.*, rd.residente_id AS propietario_id,
+        r.dni AS propietario_dni,
+        r.celular AS propietario_celular,
+        r.correo AS propietario_correo,
+        CONCAT(r.nombres, ' ', r.apellidos) AS propietario_nombre
     FROM departamentos d
     LEFT JOIN residente_departamento rd ON rd.departamento_id = d.id AND rd.activo = 1 AND rd.tipo_relacion = 'Titular'
+    LEFT JOIN residentes r ON r.id = rd.residente_id
     WHERE d.id = ?
 ");
 $stmt->execute([$id]);
