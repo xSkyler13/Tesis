@@ -27,7 +27,7 @@
 					</ul>
 				</div>
 				<div class="form-footer-right">
-					<a href="./propietario" class="btn-primary"><i class='bx bx-plus'></i> Nuevo Residente</a>
+					<a href="./residente" class="btn-primary solo-admin"><i class='bx bx-plus'></i> Nuevo Residente</a>
 				</div>
 			</div>
 
@@ -41,6 +41,7 @@
 								<option value="">Todos</option>
 								<option value="Activo">Activo</option>
 								<option value="Inactivo">Inactivo</option>
+								<option value="Baja">De baja (mudanza)</option>
 							</select>
 						</div>
 						<div class="field">
@@ -75,11 +76,11 @@
 								<th>Residente</th>
 								<th>DNI</th>
 								<th>Tipo</th>
-								<th>Torre / Depto</th>
+								<th>Departamentos</th>
 								<th>Celular</th>
 								<th>Correo</th>
 								<th>Estado</th>
-								<th>Acciones</th>
+								<th class="solo-admin">Acciones</th>
 							</tr>
 						</thead>
 						<tbody id="tabla-residentes">
@@ -114,6 +115,21 @@
 				</div>
 			</div>
 
+			<!-- MODAL BAJA POR MUDANZA -->
+			<div id="modal-baja" class="modal-overlay">
+				<div class="modal-box modal-box-form">
+					<div class="head"><h3><i class='bx bx-exit icon'></i> Dar de baja: <span id="baja-nombre">--</span></h3></div>
+					<div id="modal-baja-mensaje"></div>
+					<p class="baja-intro">El residente se muda: se cierran sus departamentos de forma definitiva y sale del reconocimiento facial. Reactivarlo después <strong>no</strong> le devuelve los departamentos.</p>
+					<p class="baja-intro">Si en un departamento viven otras personas, decide si se quedan o si el departamento queda libre por completo.</p>
+					<ul id="baja-deptos" class="baja-deptos"></ul>
+					<div class="modal-actions">
+						<button type="button" class="btn-cancel" id="btn-cancelar-baja">Cancelar</button>
+						<button type="button" class="btn-save btn-danger" id="btn-confirmar-baja"><i class='bx bx-exit'></i> Dar de baja</button>
+					</div>
+				</div>
+			</div>
+
 			<!-- MODAL EDITAR RESIDENTE -->
 			<div id="modal-editar" class="modal-overlay">
 				<div class="modal-box modal-box-form">
@@ -121,6 +137,15 @@
 					<div id="modal-editar-mensaje"></div>
 					<form id="form-editar-residente">
 						<input type="hidden" id="edit-id" name="id">
+						<input type="hidden" id="edit-foto_perfil_base64" name="foto_perfil_base64">
+						<!-- Foto de perfil: solo para mostrar. El reconocimiento facial usa la foto de la cámara. -->
+						<div class="photo-upload edit-perfil">
+							<img id="edit-perfil-preview" class="photo-preview" src="" alt="" style="display:none;">
+							<i class='bx bx-user-circle photo-placeholder' id="edit-perfil-placeholder"></i>
+							<input type="file" id="edit-perfil-input" accept="image/*" hidden>
+							<button type="button" class="btn-upload" id="btn-edit-perfil"><i class='bx bx-upload'></i> Cambiar foto de perfil</button>
+							<span class="photo-hint">No cambia la foto del reconocimiento facial</span>
+						</div>
 						<div class="form-grid">
 							<div class="field">
 								<label for="edit-tipo_residente_id">Tipo de Residente *</label>
@@ -178,10 +203,27 @@
 								<label for="edit-direccion">Dirección</label>
 								<input type="text" id="edit-direccion" name="direccion">
 							</div>
-							<div class="field span-2" id="edit-torre-info-wrap" style="display:none;">
-								<label>Torre / Departamento actual</label>
-								<span class="field-hint" id="edit-torre-info">--</span>
+						</div>
+
+						<!-- Los controles de departamentos no tienen name: se guardan al instante, no con el formulario -->
+						<div class="deptos-residente">
+							<label>Departamentos asignados</label>
+							<ul id="edit-deptos-lista" class="deptos-residente-lista"></ul>
+							<div class="deptos-residente-asignar">
+								<select id="asignar-torre" aria-label="Torre">
+									<option value="">Torre...</option>
+								</select>
+								<select id="asignar-departamento" aria-label="Departamento" disabled>
+									<option value="">Departamento...</option>
+								</select>
+								<select id="asignar-relacion" aria-label="Relación">
+									<option value="Titular">Titular</option>
+									<option value="Copropietario">Copropietario</option>
+									<option value="Habitante">Habitante</option>
+								</select>
+								<button type="button" class="btn-save" id="btn-asignar-departamento"><i class='bx bx-plus'></i> Asignar</button>
 							</div>
+							<span class="field-hint">Si se asigna como Titular, reemplaza al titular actual de ese departamento.</span>
 						</div>
 						<div class="modal-actions">
 							<button type="button" class="btn-cancel" id="btn-cancelar-editar">Cancelar</button>

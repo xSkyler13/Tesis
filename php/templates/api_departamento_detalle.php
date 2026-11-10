@@ -1,10 +1,8 @@
 <?php
 // Devuelve un departamento por id, con propietario/responsable activo (si tiene).
 
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-
-require_once __DIR__ . "/../includes/config/database.php";
+require_once __DIR__ . "/../includes/bootstrap.php";
+requerir_usuario(ROLES_PERSONAL);
 
 $id = $_GET['id'] ?? '';
 

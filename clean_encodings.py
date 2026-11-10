@@ -5,9 +5,10 @@ Uso: python clean_encodings.py
 """
 import requests
 import utils.face_utils as fu
+from utils.config import PHP_URL, headers_internos
 from utils.face_utils import load_known_faces, delete_face
 
-API_URL = "http://172.19.0.1:8000/templates/api_encodings_validos.php"
+API_URL = f"{PHP_URL}/templates/api_encodings_validos.php"
 
 def main():
     load_known_faces()
@@ -17,7 +18,7 @@ def main():
         print("ℹ️ No hay rostros registrados, nada que limpiar.")
         return
 
-    resp = requests.get(API_URL, timeout=10)
+    resp = requests.get(API_URL, headers=headers_internos(), timeout=10)
     resp.raise_for_status()
     validos = set(resp.json())
 

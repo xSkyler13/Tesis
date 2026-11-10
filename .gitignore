@@ -1,6 +1,14 @@
-# Encodings y fotos de rostros (datos sensibles)
+# Encodings y fotos de personas (datos sensibles)
 encodings.pkl
+encodings.pkl.migrado
+encodings.npz
 known_faces/
+known_faces_inactivos/
+php/unknown_faces/
+statics/img/usuarios/
+statics/img/residentes/
+statics/img/no_reconocidos/
+statics/img/visitas_docs/
 
 # Scripts temporales
 fix_enc.py
@@ -29,7 +37,15 @@ npm-debug.log*
 # IDE / herramientas locales
 .claude/
 .vscode/
+.agents/
+.skills/
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Respaldos de la base de datos (datos personales)
+backups/
+
+# Certificados TLS (la clave privada nunca se versiona)
+nginx/certs/

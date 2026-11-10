@@ -9,22 +9,11 @@ let homeStream = null;
 let homeBusy = false;
 let homePollId = null;
 let homeApprovedUntil = 0;
-let homeUnknownCapturedUntil = 0;
-let homeAccessRegisteredUntil = 0;
 
 const homeGrab = document.createElement('canvas');
 homeGrab.width = 500;
 homeGrab.height = 350;
 const homeGctx = homeGrab.getContext('2d');
-
-function registrarAccesoHome(usuario, resultado) {
-	const fd = new FormData();
-	fd.append('usuario', usuario);
-	fd.append('resultado', resultado);
-	fetch('http://localhost:8000/templates/api_acceso.php', { method: 'POST', body: fd })
-		.then(() => { if (typeof cargarDashboardHome === 'function') cargarDashboardHome(); })
-		.catch(() => {});
-}
 
 function drawBoxesHome(faces, color) {
 	if (!homeCtx) return;
@@ -83,27 +72,19 @@ async function tickHome() {
 				homeStatus.className = 'camera-status acceso';
 				homeStatus.textContent = `✅ Bienvenido ${data.name}`;
 				homeApprovedUntil = Date.now() + 4000;
-				if (Date.now() > homeAccessRegisteredUntil) {
-					homeAccessRegisteredUntil = Date.now() + 5000;
-					registrarAccesoHome(data.name, 'APROBADO');
-				}
+				// El acceso ya lo registró el servidor al aprobar el rostro
+				if (typeof cargarDashboardHome === 'function') cargarDashboardHome();
 				break;
 			case 'challenge':
 				drawBoxesHome(data.faces, '#007bff');
 				homeStatus.className = 'camera-status reto';
-				homeStatus.textContent = `🔐 ${data.name} — ${data.instruction}`;
+				// El nombre no se revela hasta aprobar
+				homeStatus.textContent = `🔐 Verificando (${data.paso}/${data.total_pasos}) — ${data.instruction}`;
 				break;
 			case 'unknown':
 				drawBoxesHome(data.faces, '#dc3545');
 				homeStatus.className = 'camera-status denegado';
 				homeStatus.textContent = '❌ Persona no registrada';
-				if (Date.now() > homeUnknownCapturedUntil) {
-					homeUnknownCapturedUntil = Date.now() + 10000;
-					const fotoFd = new FormData();
-					fotoFd.append('foto_base64', image);
-					fetch('http://localhost:8000/templates/api_unknown_face.php', { method: 'POST', body: fotoFd }).catch(() => {});
-					registrarAccesoHome('desconocido', 'DENEGADO');
-				}
 				break;
 			default:
 				if (homeCtx) homeCtx.clearRect(0, 0, homeOverlay.width, homeOverlay.height);

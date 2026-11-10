@@ -1,11 +1,7 @@
 <?php
 
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-
-require_once __DIR__ . "/../includes/config/database.php";
+require_once __DIR__ . "/../includes/bootstrap.php";
+requerir_usuario(ROLES_ADMIN);
 
 $id = $_POST['id'] ?? '';
 
@@ -32,6 +28,7 @@ try {
     }
 
     $conexion->commit();
+    auditar('eliminar', 'departamento', $id);
     echo json_encode(["success" => true]);
 } catch (PDOException $e) {
     $conexion->rollBack();

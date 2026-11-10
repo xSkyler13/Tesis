@@ -22,21 +22,24 @@ function renderListaAccesos(eventos) {
 	lista.innerHTML = eventos.map(ev => {
 		const b = badgeEvento(ev.tipo_evento);
 		const avatar = ev.foto
-			? `<img class="avatar" src="/${ev.foto}" alt="">`
+			? `<img class="avatar" src="/${esc(ev.foto)}" alt="">`
 			: `<span class="avatar avatar-placeholder"><i class='bx bx-user'></i></span>`;
+
+		// Un intento no reconocido abre su incidencia para revisarla
+		const tag = ev.incidencia_id ? `a href="/incidencias?id=${ev.incidencia_id}" class="access-row access-link"` : 'div class="access-row"';
 
 		return `
 			<li class="access-item">
-				<div class="access-row">
+				<${tag}>
 					<span class="status-icon ${b.icono}"><i class='bx ${b.check}'></i></span>
 					<span class="access-time">${formatHoraEvento(ev.fecha_hora)}</span>
 					${avatar}
 					<div class="access-info">
-						<p class="access-name">${ev.nombre}</p>
-						<span class="access-sub">${ev.detalle}</span>
+						<p class="access-name">${esc(ev.nombre)}</p>
+						<span class="access-sub">${esc(ev.detalle)}</span>
 					</div>
 					<span class="badge-status ${b.badge}">${b.texto}</span>
-				</div>
+				</${ev.incidencia_id ? 'a' : 'div'}>
 			</li>
 		`;
 	}).join('');
@@ -49,7 +52,7 @@ async function cargarDashboardHome() {
 		document.getElementById('lista-accesos-tiempo-real').innerHTML = skeletonListaItems('access-item');
 	}
 	try {
-		const response = await fetch('http://localhost:8000/templates/api_home_dashboard.php');
+		const response = await fetch('/api/api_home_dashboard.php', { headers: { 'X-Refresco-Automatico': '1' } });
 		const result = await response.json();
 
 		document.getElementById('stat-accesos-hoy').textContent = result.accesos_hoy;
@@ -85,14 +88,14 @@ function renderVisitasPendientes(visitas) {
 	}
 
 	lista.innerHTML = visitas.map(v => `
-		<li class="visitor-item" data-id="${v.id}">
+		<li class="visitor-item" data-id="${esc(v.id)}">
 			<span class="avatar avatar-placeholder"><i class='bx bx-user'></i></span>
 			<div class="visitor-info">
-				<p class="visitor-name">${v.nombres_visitante}</p>
-				<span class="visitor-detail">Visita a: ${v.residente_nombre} - ${v.torre_nombre} Dep ${v.depto_numero}</span>
+				<p class="visitor-name">${esc(v.nombres_visitante)}</p>
+				<span class="visitor-detail">Visita a: ${esc(v.residente_nombre)} - ${esc(v.torre_nombre)} Dep ${esc(v.depto_numero)}</span>
 			</div>
 			<div class="visitor-meta">
-				<span class="visitor-time">${v.hora_ingreso ? v.hora_ingreso.slice(0, 5) : ''}</span>
+				<span class="visitor-time">${v.hora_ingreso ? esc(v.hora_ingreso.slice(0, 5)) : ''}</span>
 				<span class="visitor-day">${formatDiaVisita(v.fecha_visita)}</span>
 			</div>
 			<div class="visitor-actions">
@@ -110,7 +113,7 @@ async function cargarVisitasPendientes() {
 		document.getElementById('lista-visitas-pendientes').innerHTML = skeletonListaItems('visitor-item');
 	}
 	try {
-		const response = await fetch('http://localhost:8000/templates/api_visitas_pendientes.php');
+		const response = await fetch('/api/api_visitas_pendientes.php', { headers: { 'X-Refresco-Automatico': '1' } });
 		const visitas = await response.json();
 		renderVisitasPendientes(visitas);
 	} catch (error) {
@@ -138,7 +141,7 @@ if (listaVisitasPendientes) {
 			const formData = new FormData();
 			formData.set('id', id);
 			formData.set('decision', decision);
-			const response = await fetch('http://localhost:8000/templates/api_visita_decidir.php', {
+			const response = await fetch('/api/api_visita_decidir.php', {
 				method: 'POST',
 				body: formData
 			});

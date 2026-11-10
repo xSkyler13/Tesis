@@ -7,7 +7,7 @@ document.querySelector('.form_login').addEventListener('submit', async (e) => {
 
     try {
         const response = await fetch(
-            'http://localhost:8000/templates/api_login_user.php',
+            '/api/login',
             { method: 'POST', body: formData }
         );
 
@@ -20,8 +20,7 @@ document.querySelector('.form_login').addEventListener('submit', async (e) => {
 
             const rutas = {
                 1: '/home',
-                2: '/inicio',
-                3: '/asistencia'
+                2: '/home'
             };
             const rol = data.data.rol_id;
             window.location.href = rutas[rol] ?? '/home';

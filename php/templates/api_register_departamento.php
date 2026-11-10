@@ -1,11 +1,7 @@
 <?php
 
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-
-require_once __DIR__ . "/../includes/config/database.php";
+require_once __DIR__ . "/../includes/bootstrap.php";
+requerir_usuario(ROLES_ADMIN);
 
 $torre_id           = $_POST['torre_id'] ?? '';
 $numero              = trim($_POST['numero'] ?? '');
@@ -97,6 +93,7 @@ try {
 
     $conexion->commit();
 
+    auditar('crear', 'departamento', $departamento_id, $codigo_interno);
     echo json_encode(["success" => true, "departamento_id" => $departamento_id, "codigo_interno" => $codigo_interno]);
 
 } catch (PDOException $e) {

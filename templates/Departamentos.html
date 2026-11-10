@@ -27,8 +27,8 @@
 					</ul>
 				</div>
 				<!-- <div class="form-footer-right">
-					<button type="button" class="btn-reset" id="btn-exportar"><i class='bx bx-download'></i> Exportar</button>
-					<a href="./departamento" class="btn-primary"><i class='bx bx-plus'></i> Nuevo Departamento</a>
+					<button type="button" class="btn-reset solo-admin" id="btn-exportar"><i class='bx bx-download'></i> Exportar</button>
+					<a href="./departamento" class="btn-primary solo-admin"><i class='bx bx-plus'></i> Nuevo Departamento</a>
 				</div> -->
 			</div>
 
@@ -60,6 +60,14 @@
 						</select>
 					</div>
 					<div class="field">
+						<label for="f-ocupacion">Ocupación</label>
+						<select id="f-ocupacion">
+							<option value="">Todos</option>
+							<option>Libre</option>
+							<option>Ocupado</option>
+						</select>
+					</div>
+					<div class="field">
 						<label for="f-tipo">Tipo de Departamento</label>
 						<select id="f-tipo">
 							<option value="">Todos</option>
@@ -86,8 +94,8 @@
 					</div>
 				</div>
 				<div class="filtros-actions">
-					<button type="button" class="btn-reset" id="btn-exportar"><i class='bx bx-download'></i> Exportar</button>
-					<a href="./departamento" class="btn-primary"><i class='bx bx-plus'></i> Nuevo Departamento</a>
+					<button type="button" class="btn-reset solo-admin" id="btn-exportar"><i class='bx bx-download'></i> Exportar</button>
+					<a href="./departamento" class="btn-primary solo-admin"><i class='bx bx-plus'></i> Nuevo Departamento</a>
 					<button type="button" class="btn-reset" id="btn-limpiar-filtros"><i class='bx bx-reset'></i> Limpiar</button>
 					<button type="button" class="btn-save" id="btn-buscar"><i class='bx bx-search'></i> Buscar</button>
 				</div>
@@ -173,13 +181,24 @@
 					</div>
 
 					<div class="detail-panel-actions">
-						<button type="button" class="btn-icon-edit" id="btn-detalle-editar" title="Editar"><i class='bx bx-edit'></i></button>
-						<a href="./Residentes" class="btn-icon-edit" id="btn-detalle-residentes" title="Ver residentes"><i class='bx bx-user'></i></a>
-						<button type="button" class="btn-icon-edit" id="btn-detalle-eliminar" title="Eliminar"><i class='bx bx-trash'></i></button>
+						<button type="button" class="btn-icon-edit solo-admin" id="btn-detalle-editar" title="Editar"><i class='bx bx-edit'></i></button>
+						<button type="button" class="btn-icon-edit" id="btn-detalle-residentes" title="Ver propietario y residentes"><i class='bx bx-user'></i></button>
+						<button type="button" class="btn-icon-edit solo-admin" id="btn-detalle-eliminar" title="Eliminar"><i class='bx bx-trash'></i></button>
 					</div>
 				</div>
 			</div>
 		</div>
+
+			<!-- MODAL PROPIETARIO / RESIDENTES DEL DEPARTAMENTO -->
+			<div id="modal-ocupantes" class="modal-overlay">
+				<div class="modal-box modal-box-form modal-ocupantes">
+					<div class="head"><h3><i class='bx bx-user icon'></i> Departamento <span id="ocupantes-numero">--</span></h3></div>
+					<div id="ocupantes-body"></div>
+					<div class="modal-actions">
+						<button type="button" class="btn-cancel" id="btn-cerrar-ocupantes">Cerrar</button>
+					</div>
+				</div>
+			</div>
 
 			<!-- MODAL CONFIRMAR ELIMINAR -->
 			<div id="modal-eliminar" class="modal-overlay">

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href='../statics/css/boxicons.min.css' rel='stylesheet'>
+	<link rel="stylesheet" href="../statics/css/style_dashboard.css">
+	<title>Visitas</title>
+</head>
+<body>
+
+	{% include 'partials/sidebar.html' %}
+
+	<!-- NAVBAR -->
+	<section id="content">
+		{% include 'partials/navbar.html' %}
+
+		<!-- MAIN -->
+		<main>
+			<div class="page-head">
+				<div>
+					<h1 class="title">Visitas</h1>
+					<ul class="breadcrumbs">
+						<li><a href="#">Registros</a></li>
+						<li class="divider">/</li>
+						<li><a href="#" class="active">Visitas</a></li>
+					</ul>
+				</div>
+				<div class="form-footer-right">
+					<a href="./visita" class="btn-primary"><i class='bx bx-plus'></i> Nueva Visita</a>
+				</div>
+			</div>
+
+			<div class="content-data form-card visitas-filtros">
+				<div class="head"><h3><i class='bx bx-filter-alt icon'></i> Filtros de Búsqueda</h3></div>
+				<div class="form-grid filtros-grid">
+					<div class="field">
+						<label for="f-estado">Estado</label>
+						<select id="f-estado">
+							<option value="">Todos</option>
+							<option>Pendiente</option>
+							<option>Permitido</option>
+							<option>Denegado</option>
+						</select>
+					</div>
+					<div class="field">
+						<label for="f-tipo">Tipo de Visita</label>
+						<select id="f-tipo">
+							<option value="">Todos</option>
+							<option>Familiar</option>
+							<option>Amigo</option>
+							<option>Proveedor</option>
+							<option>Delivery</option>
+							<option>Servicio Técnico</option>
+							<option>Otro</option>
+						</select>
+					</div>
+					<div class="field">
+						<label for="f-sexo">Sexo</label>
+						<select id="f-sexo">
+							<option value="">Todos</option>
+							<option>Masculino</option>
+							<option>Femenino</option>
+						</select>
+					</div>
+					<div class="field">
+						<label for="f-dni">DNI / Documento</label>
+						<input type="text" id="f-dni" placeholder="Ej. 45678912">
+					</div>
+					<div class="field span-2">
+						<label>Fecha de Visita</label>
+						<div class="range-fields">
+							<input type="date" id="f-fecha-desde">
+							<span>-</span>
+							<input type="date" id="f-fecha-hasta">
+						</div>
+					</div>
+				</div>
+				<div class="filtros-actions">
+					<button type="button" class="btn-reset" id="btn-limpiar-filtros"><i class='bx bx-reset'></i> Limpiar</button>
+					<button type="button" class="btn-save" id="btn-buscar"><i class='bx bx-search'></i> Buscar</button>
+				</div>
+			</div>
+
+			<div class="content-data form-card">
+				<div class="head">
+					<h3>Lista de Visitas Registradas</h3>
+					<div class="list-head-actions">
+						<div class="input-icon">
+							<i class='bx bx-search'></i>
+							<input type="text" id="f-buscar" placeholder="Buscar por visitante, documento o departamento...">
+						</div>
+					</div>
+				</div>
+				<div class="data-table-wrap">
+					<table class="data-table">
+						<thead>
+							<tr>
+								<th>#</th>
+								<th>Visitante</th>
+								<th>Sexo</th>
+								<th>Documento</th>
+								<th>Tipo</th>
+								<th>Motivo</th>
+								<th>Fecha</th>
+								<th>Hora</th>
+								<th>Torre / Depto</th>
+								<th>Anfitrión</th>
+								<th>Estado</th>
+								<th>Acciones</th>
+							</tr>
+						</thead>
+						<tbody id="tabla-visitas">
+							<tr><td colspan="12" class="table-empty">Cargando...</td></tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="table-footer">
+					<span id="paginacion-info">Mostrando 0 de 0 visitas</span>
+					<div class="pagination-controls">
+						<select id="per-page">
+							<option value="10">10 por página</option>
+							<option value="25">25 por página</option>
+							<option value="50">50 por página</option>
+						</select>
+						<button type="button" id="btn-prev" class="btn-page"><i class='bx bx-chevron-left'></i></button>
+						<span id="paginas" class="paginas"></span>
+						<button type="button" id="btn-next" class="btn-page"><i class='bx bx-chevron-right'></i></button>
+					</div>
+				</div>
+			</div>
+
+			<!-- MODAL CONFIRMAR ELIMINAR -->
+			<div id="modal-eliminar" class="modal-overlay">
+				<div class="modal-box">
+					<h2><i class='bx bx-error-circle'></i> Eliminar Visita</h2>
+					<p>¿Eliminar la visita de <strong id="eliminar-nombre">--</strong>? Esta acción no se puede deshacer.</p>
+					<div class="modal-actions">
+						<button type="button" class="btn-cancel" id="btn-cancelar-eliminar">Cancelar</button>
+						<button type="button" class="btn-save btn-danger" id="btn-confirmar-eliminar"><i class='bx bx-trash'></i> Confirmar</button>
+					</div>
+				</div>
+			</div>
+
+			<!-- MODAL EDITAR VISITA -->
+			<div id="modal-editar" class="modal-overlay">
+				<div class="modal-box modal-box-form">
+					<div class="head"><h3><i class='bx bx-edit icon'></i> Editar Visita</h3></div>
+					<div id="modal-editar-mensaje"></div>
+					<form id="form-editar-visita">
+						<input type="hidden" id="edit-id" name="id">
+						<div class="form-grid">
+							<div class="field">
+								<label for="edit-tipo_visita">Tipo de Visita *</label>
+								<select id="edit-tipo_visita" name="tipo_visita" required>
+									<option>Familiar</option>
+									<option>Amigo</option>
+									<option>Proveedor</option>
+									<option>Delivery</option>
+									<option>Servicio Técnico</option>
+									<option>Otro</option>
+								</select>
+							</div>
+							<div class="field">
+								<label for="edit-motivo">Motivo de la Visita *</label>
+								<select id="edit-motivo" name="motivo" required>
+									<option>Visita social</option>
+									<option>Entrega / Delivery</option>
+									<option>Mantenimiento</option>
+									<option>Reunión de trabajo</option>
+									<option>Mudanza</option>
+									<option>Otro</option>
+								</select>
+							</div>
+							<div class="field">
+								<label for="edit-fecha_visita">Fecha de Visita *</label>
+								<input type="date" id="edit-fecha_visita" name="fecha_visita" required>
+							</div>
+							<div class="field">
+								<label for="edit-hora_ingreso">Hora de Ingreso *</label>
+								<input type="time" id="edit-hora_ingreso" name="hora_ingreso" required>
+							</div>
+							<div class="field">
+								<label for="edit-tiempo_estimado">Tiempo Estimado de Permanencia</label>
+								<select id="edit-tiempo_estimado" name="tiempo_estimado">
+									<option value="">Sin especificar</option>
+									<option>Menos de 1 hora</option>
+									<option>1 - 2 horas</option>
+									<option>2 - 4 horas</option>
+									<option>Más de 4 horas</option>
+								</select>
+							</div>
+							<div class="field">
+								<label for="edit-numero_visitantes">Número de Visitantes *</label>
+								<input type="number" id="edit-numero_visitantes" name="numero_visitantes" min="1" required>
+							</div>
+							<div class="field">
+								<label for="edit-autorizacion_residente">Autorización del Residente *</label>
+								<select id="edit-autorizacion_residente" name="autorizacion_residente" required>
+									<option value="Si">Sí</option>
+									<option value="No">No</option>
+								</select>
+							</div>
+							<div class="field">
+								<label for="edit-via_autorizacion">Vía de Autorización *</label>
+								<select id="edit-via_autorizacion" name="via_autorizacion" required>
+									<option>Llamada telefónica</option>
+									<option>App / Intercomunicador</option>
+									<option>Presencial</option>
+									<option>Autorización previa</option>
+								</select>
+							</div>
+							<div class="field">
+								<label for="edit-torre_id">Torre *</label>
+								<select id="edit-torre_id" required>
+									<option value="">Cargando...</option>
+								</select>
+							</div>
+							<div class="field">
+								<label for="edit-departamento_id">Departamento *</label>
+								<select id="edit-departamento_id" name="departamento_id" required></select>
+							</div>
+							<div class="field">
+								<label for="edit-residente_id">Residente Anfitrión *</label>
+								<select id="edit-residente_id" name="residente_id" required></select>
+							</div>
+							<div class="field">
+								<label for="edit-estado">Estado *</label>
+								<select id="edit-estado" name="estado" required>
+									<option>Pendiente</option>
+									<option>Permitido</option>
+									<option>Denegado</option>
+								</select>
+							</div>
+							<div class="field">
+								<label for="edit-nombres_visitante">Nombres y Apellidos del Visitante *</label>
+								<input type="text" id="edit-nombres_visitante" name="nombres_visitante" required>
+							</div>
+							<div class="field">
+								<label for="edit-sexo">Sexo</label>
+								<select id="edit-sexo" name="sexo">
+									<option value="">Sin especificar</option>
+									<option>Masculino</option>
+									<option>Femenino</option>
+								</select>
+							</div>
+							<div class="field field-doc">
+								<label for="edit-numero_documento">Documento de Identidad *</label>
+								<div class="range-fields">
+									<select id="edit-tipo_documento" name="tipo_documento">
+										<option>DNI</option>
+										<option>Carné de Extranjería</option>
+										<option>Pasaporte</option>
+									</select>
+									<input type="text" id="edit-numero_documento" name="numero_documento" required>
+								</div>
+							</div>
+							<div class="field">
+								<label for="edit-fecha_nacimiento">Fecha de Nacimiento</label>
+								<input type="date" id="edit-fecha_nacimiento" name="fecha_nacimiento">
+							</div>
+							<div class="field">
+								<label for="edit-telefono">Teléfono / Celular</label>
+								<input type="text" id="edit-telefono" name="telefono">
+							</div>
+							<div class="field">
+								<label for="edit-correo">Correo Electrónico</label>
+								<input type="email" id="edit-correo" name="correo">
+							</div>
+							<div class="field">
+								<label for="edit-parentesco">Parentesco / Relación</label>
+								<input type="text" id="edit-parentesco" name="parentesco">
+							</div>
+							<div class="field">
+								<label for="edit-direccion">Dirección</label>
+								<input type="text" id="edit-direccion" name="direccion">
+							</div>
+							<div class="field">
+								<label for="edit-empresa">Empresa / Institución</label>
+								<input type="text" id="edit-empresa" name="empresa">
+							</div>
+							<div class="field span-2">
+								<label for="edit-observaciones">Observaciones</label>
+								<textarea id="edit-observaciones" name="observaciones" maxlength="255" rows="3"></textarea>
+							</div>
+						</div>
+						<div class="modal-actions">
+							<button type="button" class="btn-cancel" id="btn-cancelar-editar">Cancelar</button>
+							<button type="submit" class="btn-save"><i class='bx bx-save'></i> Guardar</button>
+						</div>
+					</form>
+				</div>
+			</div>
+
+		</main>
+		<!-- MAIN -->
+	</section>
+	<!-- NAVBAR -->
+
+	<script src="../statics/js/apexcharts.min.js"></script>
+	<script src="../statics/js/session.js"></script>
+	<script src="../statics/js/script_dashboard.js"></script>
+	<script src="../statics/js/skeleton.js"></script>
+	<script src="../statics/js/api_visitas_lista.js"></script>
+</body>
+</html>

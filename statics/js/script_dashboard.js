@@ -102,6 +102,24 @@ allSideLinks.forEach(link => {
 const toggleSidebar = document.querySelector('nav .toggle-sidebar');
 const allSideDivider = document.querySelectorAll('#sidebar .divider');
 
+// En celular el sidebar es un panel deslizable: arranca cerrado y, abierto,
+// se muestra sobre el contenido con un fondo oscuro que lo cierra al tocarlo.
+const pantallaMovil = window.matchMedia('(max-width: 768px)');
+const fondoSidebar = document.createElement('div');
+fondoSidebar.className = 'sidebar-fondo';
+document.body.appendChild(fondoSidebar);
+
+function sincronizarFondoSidebar() {
+	document.body.classList.toggle('sidebar-movil-abierto', pantallaMovil.matches && !sidebar.classList.contains('hide'));
+}
+
+if (pantallaMovil.matches) sidebar.classList.add('hide');
+pantallaMovil.addEventListener('change', (e) => {
+	if (e.matches) sidebar.classList.add('hide');
+	sincronizarFondoSidebar();
+})
+fondoSidebar.addEventListener('click', () => toggleSidebar.click());
+
 if(sidebar.classList.contains('hide')) {
 	allSideDivider.forEach(item=> {
 		item.textContent = '-'
@@ -119,6 +137,7 @@ if(sidebar.classList.contains('hide')) {
 
 toggleSidebar.addEventListener('click', function () {
 	sidebar.classList.toggle('hide');
+	sincronizarFondoSidebar();
 
 	if(sidebar.classList.contains('hide')) {
 		allSideDivider.forEach(item=> {

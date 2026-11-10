@@ -1,11 +1,7 @@
 <?php
 
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-
-require_once __DIR__ . "/../includes/config/database.php";
+require_once __DIR__ . "/../includes/bootstrap.php";
+requerir_usuario(ROLES_ADMIN);
 
 $nombres            = $_POST['nombres'] ?? '';
 $apellidos          = $_POST['apellidos'] ?? '';
@@ -20,6 +16,8 @@ $direccion          = $_POST['direccion'] ?? null;
 $departamento_id    = $_POST['departamento_id'] ?? '';
 $tipo_residente_id  = $_POST['tipo_residente_id'] ?? '';
 $foto_base64        = $_POST['foto_base64'] ?? '';
+$foto_perfil_base64 = $_POST['foto_perfil_base64'] ?? '';
+$consentimiento     = ($_POST['consentimiento_biometrico'] ?? '') === '1';
 
 if (
     empty($nombres) ||
@@ -35,19 +33,44 @@ if (
     exit;
 }
 
+// Ley 29733: sin consentimiento expreso no se guarda el rostro
+if (!empty($foto_base64) && !$consentimiento) {
+    echo json_encode(["success" => false, "message" => "Falta el consentimiento del residente para usar su rostro"]);
+    exit;
+}
+
 $ruta_rostro = null;
 $foto_perfil = null;
 
 if (!empty($foto_base64)) {
-    $data = preg_replace('#^data:image/\w+;base64,#i', '', $foto_base64);
-    $data = base64_decode($data);
-    $nombre_archivo = $nombres . ' ' . $apellidos;
-    $nombre_archivo = preg_replace('/\s+/', '_', $nombre_archivo);
-    $nombre_archivo = strtolower($nombre_archivo);
+    $data = decodificar_imagen($foto_base64);
+    if ($data === null) {
+        echo json_encode(["success" => false, "message" => "La foto no es una imagen válida"]);
+        exit;
+    }
+    $nombre_archivo = strtolower(nombre_archivo_seguro($nombres . ' ' . $apellidos));
     $ruta_disco = __DIR__ . '/../../known_faces/' . $nombre_archivo . '.jpg';
     file_put_contents($ruta_disco, $data);
     $ruta_rostro = 'known_faces/' . $nombre_archivo . '.jpg';
     $foto_perfil = $ruta_rostro;
+}
+
+// Foto de perfil subida: solo se muestra en el sistema, no entra al
+// reconocimiento facial. Si no se sube, se usa la foto del rostro.
+if (!empty($foto_perfil_base64)) {
+    $data = decodificar_imagen($foto_perfil_base64);
+    if ($data === null) {
+        echo json_encode(["success" => false, "message" => "La foto de perfil no es una imagen válida"]);
+        exit;
+    }
+    $extension = image_type_to_extension(getimagesizefromstring($data)[2]);
+    $carpeta = __DIR__ . '/../../statics/img/residentes';
+    if (!is_dir($carpeta)) {
+        mkdir($carpeta, 0755, true);
+    }
+    $nombre_archivo = uniqid('residente_') . $extension;
+    file_put_contents($carpeta . '/' . $nombre_archivo, $data);
+    $foto_perfil = 'statics/img/residentes/' . $nombre_archivo;
 }
 
 try {
@@ -70,8 +93,9 @@ try {
     // RESIDENTE
     $stmt = $conexion->prepare("
         INSERT INTO residentes
-        (tipo_residente_id, nombres, apellidos, dni, fecha_nacimiento, sexo, estado_civil, correo, celular, telefono, direccion, foto_perfil, ruta_rostro)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (tipo_residente_id, nombres, apellidos, dni, fecha_nacimiento, sexo, estado_civil, correo, celular, telefono, direccion, foto_perfil, ruta_rostro,
+         consentimiento_biometrico, fecha_consentimiento)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, IF(? = 1, NOW(), NULL))
     ");
     $stmt->execute([
         $tipo_residente_id,
@@ -86,7 +110,9 @@ try {
         $telefono,
         $direccion,
         $foto_perfil,
-        $ruta_rostro
+        $ruta_rostro,
+        $ruta_rostro ? 1 : 0,
+        $ruta_rostro ? 1 : 0
     ]);
     $residente_id = $conexion->lastInsertId();
 
@@ -106,6 +132,7 @@ try {
 
     $conexion->commit();
 
+    auditar('crear', 'residente', $residente_id, "$nombres $apellidos" . ($ruta_rostro ? ', con rostro' : ''));
     echo json_encode(["success" => true, "residente_id" => $residente_id]);
 
 } catch (PDOException $e) {
@@ -113,7 +140,7 @@ try {
     if ($e->getCode() === '23000') {
         echo json_encode(["success" => false, "message" => "El DNI ya está registrado."]);
     } else {
-        echo json_encode(["success" => false, "message" => "Error al registrar propietario."]);
+        echo json_encode(["success" => false, "message" => "Error al registrar residente."]);
     }
 } catch (Exception $e) {
     $conexion->rollBack();

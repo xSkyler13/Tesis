@@ -1,10 +1,7 @@
 <?php
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
 
-require_once __DIR__ . "/../includes/config/database.php";
+require_once __DIR__ . "/../includes/bootstrap.php";
+requerir_usuario(ROLES_PERSONAL);
 
 $tipo_visita            = trim($_POST['tipo_visita'] ?? '');
 $motivo                 = trim($_POST['motivo'] ?? '');
@@ -18,6 +15,7 @@ $departamento_id        = $_POST['departamento_id'] ?? '';
 $residente_id           = $_POST['residente_id'] ?? '';
 $nombres_visitante      = trim($_POST['nombres_visitante'] ?? '');
 $tipo_documento         = trim($_POST['tipo_documento'] ?? 'DNI');
+$sexo                   = $_POST['sexo'] ?? '';
 $numero_documento       = trim($_POST['numero_documento'] ?? '');
 $fecha_nacimiento       = $_POST['fecha_nacimiento'] ?? null;
 $telefono               = trim($_POST['telefono'] ?? '');
@@ -37,6 +35,11 @@ if (
     exit;
 }
 
+if ($sexo !== '' && !in_array($sexo, ['Masculino', 'Femenino'])) {
+    echo json_encode(["success" => false, "message" => "Sexo inválido"]);
+    exit;
+}
+
 if (!in_array($autorizacion_residente, ['Si', 'No'])) {
     echo json_encode(["success" => false, "message" => "Autorización del residente inválida"]);
     exit;
@@ -48,14 +51,17 @@ $estado = 'Pendiente';
 
 $foto_documento = null;
 if (!empty($foto_base64)) {
-    $data = preg_replace('#^data:(image|application)/[\w.+-]+;base64,#i', '', $foto_base64);
-    $data = base64_decode($data);
+    $documento = decodificar_documento($foto_base64);
+    if ($documento === null) {
+        echo json_encode(["success" => false, "message" => "El documento debe ser una imagen (JPG, PNG, WEBP) o un PDF de hasta 2 MB"]);
+        exit;
+    }
     $carpeta = __DIR__ . '/../../statics/img/visitas_docs';
     if (!is_dir($carpeta)) {
         mkdir($carpeta, 0755, true);
     }
-    $nombre_archivo = uniqid('doc_') . '.jpg';
-    file_put_contents($carpeta . '/' . $nombre_archivo, $data);
+    $nombre_archivo = uniqid('doc_') . $documento['extension'];
+    file_put_contents($carpeta . '/' . $nombre_archivo, $documento['data']);
     $foto_documento = 'statics/img/visitas_docs/' . $nombre_archivo;
 }
 
@@ -76,9 +82,9 @@ try {
         INSERT INTO visitas
         (tipo_visita, motivo, fecha_visita, hora_ingreso, tiempo_estimado, numero_visitantes,
          autorizacion_residente, via_autorizacion, departamento_id, residente_id, nombres_visitante,
-         tipo_documento, numero_documento, fecha_nacimiento, telefono, correo, parentesco,
+         sexo, tipo_documento, numero_documento, fecha_nacimiento, telefono, correo, parentesco,
          direccion, empresa, observaciones, foto_documento, estado)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
     $stmt->execute([
         $tipo_visita,
@@ -92,6 +98,7 @@ try {
         $departamento_id,
         $residente_id,
         $nombres_visitante,
+        $sexo ?: null,
         $tipo_documento ?: 'DNI',
         $numero_documento,
         $fecha_nacimiento ?: null,
@@ -105,7 +112,9 @@ try {
         $estado
     ]);
 
-    echo json_encode(["success" => true, "visita_id" => $conexion->lastInsertId(), "estado" => $estado]);
+    $visitaId = $conexion->lastInsertId();
+    auditar('crear', 'visita', $visitaId, $nombres_visitante);
+    echo json_encode(["success" => true, "visita_id" => $visitaId, "estado" => $estado]);
 } catch (Exception $e) {
     echo json_encode(["success" => false, "message" => $e->getMessage()]);
 }

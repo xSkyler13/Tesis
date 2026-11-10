@@ -1,3 +1,6 @@
+import hmac
+from functools import wraps
+
 from flask import Blueprint, request, jsonify, session
 import cv2
 import base64
@@ -5,8 +8,10 @@ import time
 import random
 import numpy as np
 import face_recognition
+import requests
 
 import utils.face_utils as fu
+from utils.config import INTERNAL_TOKEN, PHP_URL, headers_internos
 from utils.face_utils import load_known_faces, save_new_face, delete_face, reactivate_face
 
 face_bp = Blueprint('face', __name__)
@@ -14,7 +19,9 @@ face_bp = Blueprint('face', __name__)
 # ==================== PARÁMETROS LIVENESS ====================
 EAR_THRESHOLD = 0.21
 TURN_THRESHOLD = 0.10
-CHALLENGE_TIMEOUT = 8.0
+CHALLENGE_TIMEOUT = 8.0        # segundos para cumplir cada reto
+RETOS_POR_VERIFICACION = 2     # retos distintos, en orden aleatorio
+INTERVALO_MIN_FRAMES = 0.25    # frames más seguidos se ignoran (envío automatizado)
 
 CHALLENGES = ["blink", "turn_left", "turn_right"]
 CHALLENGE_LABEL = {
@@ -22,6 +29,65 @@ CHALLENGE_LABEL = {
     "turn_left": "Gira la cabeza a tu IZQUIERDA ⬅️",
     "turn_right": "Gira la cabeza a tu DERECHA ➡️",
 }
+
+
+# Un mismo desconocido frente a la cámara no debe generar una foto por frame
+UNKNOWN_CAPTURE_INTERVAL = 10.0
+_ultima_captura_desconocido = 0.0
+
+
+# ==================== PERMISOS ====================
+def requiere_sesion(vista):
+    @wraps(vista)
+    def envuelta(*args, **kwargs):
+        if 'usuario_id' not in session:
+            return jsonify({"success": False, "message": "Sesión expirada"}), 401
+        return vista(*args, **kwargs)
+    return envuelta
+
+
+def requiere_interno(vista):
+    """Solo para llamadas servidor a servidor (PHP -> Flask)."""
+    @wraps(vista)
+    def envuelta(*args, **kwargs):
+        if not hmac.compare_digest(request.headers.get('X-Internal-Token', ''), INTERNAL_TOKEN):
+            return jsonify({"success": False, "message": "No autorizado"}), 403
+        return vista(*args, **kwargs)
+    return envuelta
+
+
+# ==================== REGISTRO EN PHP ====================
+# El resultado del reconocimiento lo registra el servidor, nunca el navegador:
+# así nadie puede marcar un acceso con un simple POST.
+def registrar_acceso(nombre):
+    try:
+        r = requests.post(
+            f"{PHP_URL}/templates/api_acceso.php",
+            data={"usuario": nombre, "resultado": "APROBADO"},
+            headers=headers_internos(),
+            timeout=5,
+        )
+        return r.json().get("tipo")
+    except (requests.RequestException, ValueError) as e:
+        print("Error registrando acceso:", str(e))
+        return None
+
+
+def registrar_desconocido(image_data):
+    global _ultima_captura_desconocido
+    ahora = time.time()
+    if ahora - _ultima_captura_desconocido < UNKNOWN_CAPTURE_INTERVAL:
+        return
+    _ultima_captura_desconocido = ahora
+    try:
+        requests.post(
+            f"{PHP_URL}/templates/api_unknown_face.php",
+            data={"foto_base64": image_data},
+            headers=headers_internos(),
+            timeout=5,
+        )
+    except requests.RequestException as e:
+        print("Error guardando rostro desconocido:", str(e))
 
 
 # ==================== UTILIDADES ====================
@@ -57,9 +123,11 @@ def analyze_face(rgb_frame):
     encodings = face_recognition.face_encodings(rgb_frame, [location])
     name = "Desconocido"
     if encodings and len(fu.known_face_encodings) > 0:
-        matches = face_recognition.compare_faces(fu.known_face_encodings, encodings[0], tolerance=0.5)
-        if True in matches:
-            name = fu.known_face_names[matches.index(True)]
+        # La coincidencia más cercana, no la primera que entre en la tolerancia
+        distancias = face_recognition.face_distance(fu.known_face_encodings, encodings[0])
+        mejor = int(np.argmin(distancias))
+        if distancias[mejor] <= 0.5:
+            name = fu.known_face_names[mejor]
 
     landmarks_list = face_recognition.face_landmarks(rgb_frame, [location])
     landmarks = landmarks_list[0] if landmarks_list else {}
@@ -85,23 +153,40 @@ def head_turn_ratio(landmarks, location):
     return (nose_x - jaw_left_x) / span
 
 
+def _iniciar_paso(lv):
+    """Reinicia el estado de medición para el reto actual."""
+    lv.update({"start": time.time(), "ear_open_seen": False, "blinked": False, "turn_base": None})
+
+
 def start_challenge(name):
-    challenge = random.choice(CHALLENGES)
-    session["lv"] = {
-        "name": name,
-        "challenge": challenge,
-        "start": time.time(),
-        "ear_open_seen": False,
-        "blinked": False,
-        "turn_base": None,
-    }
-    return challenge
+    # Varios retos distintos en orden aleatorio: un video pregrabado tendría que
+    # coincidir con esta secuencia exacta (6 combinaciones posibles con 2 de 3).
+    lv = {"name": name, "retos": random.sample(CHALLENGES, RETOS_POR_VERIFICACION), "paso": 0, "ultimo_frame": 0}
+    _iniciar_paso(lv)
+    session["lv"] = lv
+    return lv
+
+
+def respuesta_reto(lv, box, retry=False):
+    """Instrucción del reto actual. No revela el nombre (no permite averiguar
+    quién está registrado) ni datos internos de medición."""
+    reto = lv["retos"][lv["paso"]]
+    return jsonify({
+        "status": "challenge",
+        "challenge": reto,
+        "instruction": CHALLENGE_LABEL[reto],
+        "paso": lv["paso"] + 1,
+        "total_pasos": len(lv["retos"]),
+        "faces": [{k: v for k, v in box.items() if k != "name"}],
+        "retry": retry,
+    })
 
 
 # ==================== GUÍA DE CAPTURA (estilo Face ID) ====================
 # No identifica a nadie: solo dice si hay un rostro en el frame, y qué tan
 # grande/centrado está, para guiar al usuario mientras encuadra la foto.
 @face_bp.route('/detectar_rostro', methods=['POST'])
+@requiere_sesion
 def detectar_rostro():
     image_data = request.form.get('image')
     if not image_data:
@@ -149,6 +234,7 @@ def detectar_rostro():
 
 # ==================== REGISTRO ====================
 @face_bp.route('/save_face', methods=['POST'])
+@requiere_sesion
 def save_face():
     name = request.form.get('name')
     image_data = request.form.get('image')
@@ -168,6 +254,7 @@ def save_face():
 
 # ==================== ELIMINACIÓN ====================
 @face_bp.route('/delete_face', methods=['POST'])
+@requiere_interno
 def delete_face_route():
     name = request.form.get('name')
     if not name:
@@ -179,6 +266,7 @@ def delete_face_route():
 
 # ==================== REACTIVACIÓN ====================
 @face_bp.route('/reactivate_face', methods=['POST'])
+@requiere_interno
 def reactivate_face_route():
     name = request.form.get('name')
     if not name:
@@ -213,33 +301,23 @@ def recognize():
 
         if name == "Desconocido":
             session.pop("lv", None)
+            registrar_desconocido(image_data)
             return jsonify({"status": "unknown", "faces": [box]})
 
         lv = session.get("lv")
-        if not lv or lv["name"] != name:
-            challenge = start_challenge(name)
-            return jsonify({
-                "status": "challenge",
-                "name": name,
-                "challenge": challenge,
-                "instruction": CHALLENGE_LABEL[challenge],
-                "faces": [box],
-            })
+        if not lv or lv.get("name") != name or "retos" not in lv:
+            return respuesta_reto(start_challenge(name), box)
 
-        if time.time() - lv["start"] > CHALLENGE_TIMEOUT:
-            challenge = start_challenge(name)
-            return jsonify({
-                "status": "challenge",
-                "name": name,
-                "challenge": challenge,
-                "instruction": CHALLENGE_LABEL[challenge],
-                "faces": [box],
-                "retry": True,
-            })
+        ahora = time.time()
+        if ahora - lv["start"] > CHALLENGE_TIMEOUT:
+            return respuesta_reto(start_challenge(name), box, retry=True)
 
-        challenge = lv["challenge"]
+        if ahora - lv["ultimo_frame"] < INTERVALO_MIN_FRAMES:
+            return respuesta_reto(lv, box)
+        lv["ultimo_frame"] = ahora
+
+        challenge = lv["retos"][lv["paso"]]
         passed = False
-        debug = {}
 
         if challenge == "blink":
             ear = compute_ear(landmarks)
@@ -248,7 +326,6 @@ def recognize():
                     lv["ear_open_seen"] = True
                 if lv["ear_open_seen"] and ear < EAR_THRESHOLD:
                     lv["blinked"] = True
-                debug = {"ear": round(ear, 3), "thr": EAR_THRESHOLD, "open_seen": lv["ear_open_seen"]}
             passed = lv["blinked"]
         else:
             ratio = head_turn_ratio(landmarks, location)
@@ -260,23 +337,17 @@ def recognize():
                     passed = True
                 if challenge == "turn_right" and delta < -TURN_THRESHOLD:
                     passed = True
-                debug = {"ratio": round(ratio, 3), "base": round(lv["turn_base"], 3),
-                         "delta": round(delta, 3), "thr": TURN_THRESHOLD}
-
-        session["lv"] = lv
 
         if passed:
-            session.pop("lv", None)
-            return jsonify({"status": "approved", "name": name, "faces": [box]})
+            lv["paso"] += 1
+            if lv["paso"] >= len(lv["retos"]):
+                session.pop("lv", None)
+                tipo = registrar_acceso(name)
+                return jsonify({"status": "approved", "name": name, "tipo": tipo, "faces": [box]})
+            _iniciar_paso(lv)
 
-        return jsonify({
-            "status": "challenge",
-            "name": name,
-            "challenge": challenge,
-            "instruction": CHALLENGE_LABEL[challenge],
-            "faces": [box],
-            "debug": debug,
-        })
+        session["lv"] = lv
+        return respuesta_reto(lv, box)
 
     except Exception as e:
         print("Error recognize:", str(e))

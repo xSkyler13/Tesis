@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href='../statics/css/boxicons.min.css' rel='stylesheet'>
+	<link rel="stylesheet" href="../statics/css/style_dashboard.css">
+	<title>Usuarios</title>
+</head>
+<body>
+
+	{% include 'partials/sidebar.html' %}
+
+	<!-- NAVBAR -->
+	<section id="content">
+		{% include 'partials/navbar.html' %}
+
+		<!-- MAIN -->
+		<main>
+			<div class="page-head">
+				<div>
+					<h1 class="title">Usuarios</h1>
+					<ul class="breadcrumbs">
+						<li><a href="#">Seguridad</a></li>
+						<li class="divider">/</li>
+						<li><a href="#" class="active">Usuarios del sistema</a></li>
+					</ul>
+				</div>
+				<div class="form-footer-right">
+					<button type="button" class="btn-primary" id="btn-nuevo-usuario"><i class='bx bx-plus'></i> Nuevo Usuario</button>
+				</div>
+			</div>
+
+			<div class="content-data form-card incidencias-filtros">
+				<div class="head"><h3><i class='bx bx-filter-alt icon'></i> Filtros de Búsqueda</h3></div>
+				<div class="form-grid filtros-grid">
+					<div class="field">
+						<label for="f-buscar">Buscar</label>
+						<input type="text" id="f-buscar" placeholder="Usuario o correo">
+					</div>
+					<div class="field">
+						<label for="f-rol">Rol</label>
+						<select id="f-rol"><option value="">Todos</option></select>
+					</div>
+					<div class="field">
+						<label for="f-estado">Estado</label>
+						<select id="f-estado">
+							<option value="">Todos</option>
+							<option>Activo</option>
+							<option>Inactivo</option>
+						</select>
+					</div>
+				</div>
+				<div class="filtros-actions">
+					<button type="button" class="btn-reset" id="btn-limpiar-filtros"><i class='bx bx-reset'></i> Limpiar</button>
+					<button type="button" class="btn-save" id="btn-buscar"><i class='bx bx-search'></i> Buscar</button>
+				</div>
+			</div>
+
+			<div class="content-data form-card">
+				<div class="head"><h3>Personal con acceso al sistema</h3></div>
+				<div class="data-table-wrap">
+					<table class="data-table">
+						<thead>
+							<tr>
+								<th>Usuario</th>
+								<th>Correo</th>
+								<th>Rol</th>
+								<th>Estado</th>
+								<th>Último ingreso</th>
+								<th>Acciones</th>
+							</tr>
+						</thead>
+						<tbody id="tabla-usuarios">
+							<tr><td colspan="6" class="table-empty">Cargando...</td></tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+
+			<!-- MODAL CREAR / EDITAR USUARIO -->
+			<div id="modal-usuario" class="modal-overlay">
+				<div class="modal-box modal-box-form">
+					<div class="head"><h3><i class='bx bx-user icon'></i> <span id="modal-usuario-titulo">Nuevo Usuario</span></h3></div>
+					<div id="modal-usuario-mensaje"></div>
+					<form id="form-usuario" autocomplete="off">
+						<input type="hidden" id="usuario-id" name="id">
+						<div class="form-grid">
+							<div class="field">
+								<label for="usuario-usuario">Usuario *</label>
+								<input type="text" id="usuario-usuario" name="usuario" required minlength="3" maxlength="50" pattern="[A-Za-z0-9._\-]+" title="Letras, números, punto, guion o guion bajo">
+							</div>
+							<div class="field">
+								<label for="usuario-correo">Correo *</label>
+								<input type="email" id="usuario-correo" name="correo" required>
+							</div>
+							<div class="field">
+								<label for="usuario-rol">Rol *</label>
+								<select id="usuario-rol" name="rol_id" required></select>
+								<span class="field-hint" id="usuario-rol-ayuda"></span>
+							</div>
+							<div class="field"></div>
+							<div class="field">
+								<label for="usuario-password" id="usuario-password-label">Contraseña *</label>
+								<input type="password" id="usuario-password" minlength="8" autocomplete="new-password" placeholder="Mínimo 8 caracteres">
+							</div>
+							<div class="field">
+								<label for="usuario-password2">Confirmar contraseña</label>
+								<input type="password" id="usuario-password2" minlength="8" autocomplete="new-password">
+							</div>
+						</div>
+						<div class="modal-actions">
+							<button type="button" class="btn-cancel" id="btn-cancelar-usuario">Cancelar</button>
+							<button type="submit" class="btn-save"><i class='bx bx-save'></i> Guardar</button>
+						</div>
+					</form>
+				</div>
+			</div>
+
+		</main>
+		<!-- MAIN -->
+	</section>
+	<!-- NAVBAR -->
+
+	<script src="../statics/js/apexcharts.min.js"></script>
+	<script src="../statics/js/session.js"></script>
+	<script src="../statics/js/script_dashboard.js"></script>
+	<script src="../statics/js/api_usuarios_lista.js"></script>
+</body>
+</html>

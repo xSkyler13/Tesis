@@ -2,10 +2,8 @@
 // Datos reales para el panel de control (home.html): stat-cards + lista
 // "Accesos en tiempo real", armados a partir de la tabla accesos.
 
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-
-require_once __DIR__ . "/../includes/config/database.php";
+require_once __DIR__ . "/../includes/bootstrap.php";
+requerir_usuario(ROLES_PERSONAL);
 
 // ACCESOS HOY (ingresos aprobados del día)
 $stmt = $conexion->query("
@@ -30,7 +28,8 @@ $stmt = $conexion->query("
 ");
 $residentes_dentro = (int) $stmt->fetch()['total'];
 
-// ALERTAS HOY: accesos denegados + intentos no reconocidos del día
+// ALERTAS: accesos denegados del día + incidencias pendientes de revisar
+// (de cualquier fecha: una incidencia sigue requiriendo atención hasta que se revisa)
 $stmt = $conexion->query("
     SELECT COUNT(*) AS total FROM accesos
     WHERE resultado = 'DENEGADO' AND DATE(fecha_hora) = CURDATE()
@@ -39,11 +38,11 @@ $denegados_hoy = (int) $stmt->fetch()['total'];
 
 $stmt = $conexion->query("
     SELECT COUNT(*) AS total FROM intentos_no_reconocidos
-    WHERE DATE(fecha_hora) = CURDATE()
+    WHERE estado = 'Pendiente'
 ");
-$desconocidos_hoy = (int) $stmt->fetch()['total'];
+$incidencias_pendientes = (int) $stmt->fetch()['total'];
 
-$alertas_hoy = $denegados_hoy + $desconocidos_hoy;
+$alertas_hoy = $denegados_hoy + $incidencias_pendientes;
 
 // VISITAS ACTIVAS: visitas pendientes de autorización
 $stmt = $conexion->query("SELECT COUNT(*) AS total FROM visitas WHERE estado = 'Pendiente'");
@@ -74,7 +73,7 @@ $stmt = $conexion->query("
 $accesos = $stmt->fetchAll();
 
 $stmt = $conexion->query("
-    SELECT fecha_hora, foto_path FROM intentos_no_reconocidos
+    SELECT id, fecha_hora, foto_path FROM intentos_no_reconocidos
     ORDER BY id DESC LIMIT 4
 ");
 $desconocidos = $stmt->fetchAll();
@@ -87,6 +86,7 @@ foreach ($accesos as $a) {
         "nombre" => $a['nombre'],
         "detalle" => $a['torre_nombre'] ? "{$a['torre_nombre']} - Dep {$a['depto_numero']}" : "Sin departamento asignado",
         "foto" => $a['foto_perfil'],
+        "incidencia_id" => null,
     ];
 }
 foreach ($desconocidos as $d) {
@@ -95,7 +95,8 @@ foreach ($desconocidos as $d) {
         "tipo_evento" => "alerta",
         "nombre" => "Persona no reconocida",
         "detalle" => "Intento de acceso por reconocimiento facial",
-        "foto" => null,
+        "foto" => $d['foto_path'],
+        "incidencia_id" => (int) $d['id'],
     ];
 }
 

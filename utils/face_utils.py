@@ -1,29 +1,56 @@
 import os
 import pickle
+
+import numpy as np
 import face_recognition
 import cv2
 
 KNOWN_FACES_DIR = "known_faces"
 INACTIVE_FACES_DIR = "known_faces_inactivos"
-ENCODINGS_FILE = "encodings.pkl"
+# .npz con allow_pickle=False: cargarlo nunca ejecuta código (pickle sí podría
+# si alguien manipula el archivo). LEGACY_FILE se migra una sola vez.
+ENCODINGS_FILE = "encodings.npz"
+LEGACY_FILE = "encodings.pkl"
 
 known_face_encodings = []
 known_face_names = []
 
+
+def nombre_valido(name: str) -> bool:
+    """El nombre se usa como nombre de archivo: no puede salir de la carpeta."""
+    return bool(name) and name == os.path.basename(name) and not name.startswith(".") and "\\" not in name
+
+def _guardar_encodings():
+    np.savez(ENCODINGS_FILE,
+             encodings=np.array(known_face_encodings, dtype=np.float64).reshape(-1, 128),
+             names=np.array(known_face_names, dtype=str))
+
+
 def load_known_faces():
     global known_face_encodings, known_face_names
     if os.path.exists(ENCODINGS_FILE):
-        with open(ENCODINGS_FILE, "rb") as f:
-            data = pickle.load(f)
-            known_face_encodings = data["encodings"]
-            known_face_names = data["names"]
+        with np.load(ENCODINGS_FILE, allow_pickle=False) as data:
+            known_face_encodings = list(data["encodings"])
+            known_face_names = [str(n) for n in data["names"]]
         print("✅ Encodings cargados correctamente")
+    elif os.path.exists(LEGACY_FILE):
+        # Migración única desde el formato pickle anterior (archivo propio, generado por esta app)
+        with open(LEGACY_FILE, "rb") as f:
+            data = pickle.load(f)
+        known_face_encodings = list(data["encodings"])
+        known_face_names = list(data["names"])
+        _guardar_encodings()
+        os.replace(LEGACY_FILE, LEGACY_FILE + ".migrado")
+        print(f"✅ Encodings migrados de {LEGACY_FILE} a {ENCODINGS_FILE}")
     else:
         print("ℹ️ Aún no hay encodings")
 
 def save_new_face(name: str, frame):
     if frame is None:
         print("❌ Frame recibido es None")
+        return False
+    if not nombre_valido(name):
+        print(f"❌ Nombre inválido para archivo: {name!r}")
         return False
 
     if not os.path.exists(KNOWN_FACES_DIR):
@@ -44,8 +71,7 @@ def save_new_face(name: str, frame):
         known_face_encodings.append(encodings[0])
         known_face_names.append(name)
 
-        with open(ENCODINGS_FILE, "wb") as f:
-            pickle.dump({"encodings": known_face_encodings, "names": known_face_names}, f)
+        _guardar_encodings()
 
         print(f"✅ {name} registrado correctamente")
         return True
@@ -58,15 +84,14 @@ def delete_face(name: str) -> bool:
     known_faces_inactivos/ para poder reactivarla luego sin volver a tomarla."""
     global known_face_encodings, known_face_names
 
-    if name not in known_face_names:
+    if not nombre_valido(name) or name not in known_face_names:
         return False
 
     indices = [i for i, n in enumerate(known_face_names) if n == name]
     known_face_encodings = [e for i, e in enumerate(known_face_encodings) if i not in indices]
     known_face_names = [n for i, n in enumerate(known_face_names) if i not in indices]
 
-    with open(ENCODINGS_FILE, "wb") as f:
-        pickle.dump({"encodings": known_face_encodings, "names": known_face_names}, f)
+    _guardar_encodings()
 
     origen = os.path.join(KNOWN_FACES_DIR, f"{name}.jpg")
     if os.path.exists(origen):
@@ -84,6 +109,8 @@ def reactivate_face(name: str) -> bool:
     known_faces/ y vuelve a generar su encoding facial."""
     global known_face_encodings, known_face_names
 
+    if not nombre_valido(name):
+        return False
     origen = os.path.join(INACTIVE_FACES_DIR, f"{name}.jpg")
     if not os.path.exists(origen):
         return False
@@ -110,8 +137,7 @@ def reactivate_face(name: str) -> bool:
         known_face_encodings.append(encodings[0])
         known_face_names.append(name)
 
-    with open(ENCODINGS_FILE, "wb") as f:
-        pickle.dump({"encodings": known_face_encodings, "names": known_face_names}, f)
+    _guardar_encodings()
 
     print(f"✅ {name} reactivado en el reconocimiento facial")
     return True

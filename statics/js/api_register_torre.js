@@ -138,7 +138,7 @@ actualizarPreview();
 async function cargarAdministradores() {
 	const select = document.getElementById('administrador_id');
 	try {
-		const response = await fetch('http://localhost:8000/templates/api_administradores.php');
+		const response = await fetch('/api/api_administradores.php');
 		const result = await response.json();
 
 		select.innerHTML = '<option value="">-- Sin asignar --</option>';
@@ -165,7 +165,7 @@ form.addEventListener('submit', async (e) => {
 
 	try {
 		const response = await fetch(
-			'http://localhost:8000/templates/api_register_torre.php',
+			'/api/api_register_torre.php',
 			{ method: 'POST', body: formData }
 		);
 		const data = await response.json();
@@ -181,7 +181,7 @@ form.addEventListener('submit', async (e) => {
 			document.getElementById('observaciones-count').textContent = '0';
 			actualizarPreview();
 		} else {
-			mensaje.innerHTML = `<p class="error">❌ ${data.message}</p>`;
+			mensaje.innerHTML = `<p class="error">❌ ${esc(data.message)}</p>`;
 		}
 	} catch (error) {
 		console.error(error);

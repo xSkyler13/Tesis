@@ -1,8 +1,7 @@
 <?php
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
 
-require_once __DIR__ . "/../includes/config/database.php";
+require_once __DIR__ . "/../includes/bootstrap.php";
+requerir_propio_o_admin($_GET['id'] ?? 0);
 
 $id = $_GET['id'] ?? '';
 

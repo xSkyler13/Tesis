@@ -141,6 +141,14 @@
 									<label for="nombres_visitante">Nombres y Apellidos *</label>
 									<input type="text" id="nombres_visitante" name="nombres_visitante" required>
 								</div>
+								<div class="field">
+									<label for="sexo">Sexo</label>
+									<select id="sexo" name="sexo">
+										<option value="">Sin especificar</option>
+										<option>Masculino</option>
+										<option>Femenino</option>
+									</select>
+								</div>
 								<div class="field field-doc">
 									<label for="numero_documento">Documento de Identidad *</label>
 									<div class="range-fields">
@@ -218,7 +226,7 @@
 						<div class="content-data form-card">
 							<div class="head"><h3><i class='bx bx-file icon'></i> Documentos del Visitante</h3></div>
 							<label class="dropzone" id="dropzone-doc">
-								<input type="file" id="foto_documento" accept="image/*,.pdf" hidden>
+								<input type="file" id="foto_documento" accept="image/jpeg,image/png,image/webp,application/pdf" hidden>
 								<i class='bx bx-cloud-upload'></i>
 								<p>Arrastra la imagen o haz clic para seleccionar</p>
 								<span class="field-hint">JPG, PNG o PDF. Máx. 2MB</span>

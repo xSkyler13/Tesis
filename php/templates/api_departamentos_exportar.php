@@ -6,7 +6,8 @@
 // que el .xlsx (que por dentro es un .zip con varios XML) se arma a mano con
 // un mini escritor de ZIP en PHP puro (método "store", sin compresión).
 
-require_once __DIR__ . "/../includes/config/database.php";
+require_once __DIR__ . "/../includes/bootstrap.php";
+requerir_usuario(ROLES_ADMIN);
 
 // ==================== FILTROS (mismos que api_departamentos_lista.php) ====================
 
@@ -17,6 +18,7 @@ $tipo          = $_GET['tipo'] ?? '';
 $fecha_desde   = $_GET['fecha_desde'] ?? '';
 $fecha_hasta   = $_GET['fecha_hasta'] ?? '';
 $buscar        = $_GET['buscar'] ?? '';
+$ocupacion     = $_GET['ocupacion'] ?? '';
 
 $where  = [];
 $params = [];
@@ -36,6 +38,11 @@ if (!empty($estado)) {
 if (!empty($tipo)) {
     $where[] = "d.tipo = ?";
     $params[] = $tipo;
+}
+if ($ocupacion === 'Libre' || $ocupacion === 'Ocupado') {
+    $where[] = ($ocupacion === 'Libre' ? 'NOT ' : '') . "EXISTS (
+        SELECT 1 FROM residente_departamento oc WHERE oc.departamento_id = d.id AND oc.activo = 1
+    )";
 }
 if ($fecha_desde !== '') {
     $where[] = "DATE(d.fecha_creacion) >= ?";
@@ -208,9 +215,9 @@ $xlsx = construirZip([
     'xl/worksheets/sheet1.xml'  => $sheetXml,
 ]);
 
+auditar('exportar', 'departamento', null, 'filtros: ' . http_build_query($_GET));
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 header('Content-Disposition: attachment; filename="departamentos.xlsx"');
 header('Content-Length: ' . strlen($xlsx));
-header('Access-Control-Allow-Origin: *');
 
 echo $xlsx;

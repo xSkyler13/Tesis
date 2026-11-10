@@ -2,10 +2,8 @@
 // Devuelve los usuarios con rol Administrador, activos, para asignarlos como
 // administrador de una torre.
 
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-
-require_once __DIR__ . "/../includes/config/database.php";
+require_once __DIR__ . "/../includes/bootstrap.php";
+requerir_usuario(ROLES_ADMIN);
 
 $sql = "
 SELECT u.id, u.usuario

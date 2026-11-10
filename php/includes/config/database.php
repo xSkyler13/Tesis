@@ -1,9 +1,11 @@
 <?php
 
-$host = "172.17.0.2";
-$dbname = "control_acceso";
-$user = "root";
-$password = "123456";
+require_once __DIR__ . "/env.php";
+
+$host = env('DB_HOST', '172.17.0.2');
+$dbname = env('DB_NAME', 'control_acceso');
+$user = env('DB_USER', 'root');
+$password = env('DB_PASSWORD');
 
 try {
 

@@ -1,10 +1,7 @@
 <?php
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
 
-require_once __DIR__ . "/../includes/config/database.php";
+require_once __DIR__ . "/../includes/bootstrap.php";
+requerir_usuario(ROLES_ADMIN);
 
 $id                 = $_POST['id'] ?? '';
 $tipo_residente_id  = $_POST['tipo_residente_id'] ?? '';
@@ -18,10 +15,22 @@ $correo             = trim($_POST['correo'] ?? '');
 $celular            = trim($_POST['celular'] ?? '');
 $telefono           = trim($_POST['telefono'] ?? '');
 $direccion          = trim($_POST['direccion'] ?? '');
+$foto_perfil_base64 = $_POST['foto_perfil_base64'] ?? '';
 
 if (empty($id) || empty($tipo_residente_id) || empty($nombres) || empty($apellidos) || empty($dni)) {
     echo json_encode(["success" => false, "message" => "Campos obligatorios incompletos"]);
     exit;
+}
+
+// Foto de perfil nueva (opcional): solo para mostrar, no toca ruta_rostro
+$foto_perfil = null;
+if (!empty($foto_perfil_base64)) {
+    $data = decodificar_imagen($foto_perfil_base64);
+    if ($data === null) {
+        echo json_encode(["success" => false, "message" => "La foto de perfil no es una imagen válida"]);
+        exit;
+    }
+    $foto_perfil = $data;
 }
 
 try {
@@ -52,6 +61,31 @@ try {
         $id
     ]);
 
+    if ($foto_perfil !== null) {
+        $stmt = $conexion->prepare("SELECT foto_perfil FROM residentes WHERE id = ?");
+        $stmt->execute([$id]);
+        $anterior = $stmt->fetchColumn();
+
+        $carpeta = __DIR__ . '/../../statics/img/residentes';
+        if (!is_dir($carpeta)) {
+            mkdir($carpeta, 0755, true);
+        }
+        $nombre_archivo = uniqid('residente_') . image_type_to_extension(getimagesizefromstring($foto_perfil)[2]);
+        file_put_contents($carpeta . '/' . $nombre_archivo, $foto_perfil);
+
+        $stmt = $conexion->prepare("UPDATE residentes SET foto_perfil = ? WHERE id = ?");
+        $stmt->execute(['statics/img/residentes/' . $nombre_archivo, $id]);
+
+        // Borra la foto subida anterior; nunca la del reconocimiento (known_faces/)
+        if ($anterior) {
+            $archivo = realpath(__DIR__ . '/../../' . $anterior);
+            if ($archivo && strpos($archivo, realpath($carpeta) . DIRECTORY_SEPARATOR) === 0) {
+                @unlink($archivo);
+            }
+        }
+    }
+
+    auditar('editar', 'residente', $id, $foto_perfil !== null ? 'incluye foto de perfil' : null);
     echo json_encode(["success" => true]);
 } catch (PDOException $e) {
     if ($e->getCode() === '23000') {

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href='../statics/css/boxicons.min.css' rel='stylesheet'>
+	<link rel="stylesheet" href="../statics/css/style_dashboard.css">
+	<title>Auditoría</title>
+</head>
+<body>
+
+	{% include 'partials/sidebar.html' %}
+
+	<!-- NAVBAR -->
+	<section id="content">
+		{% include 'partials/navbar.html' %}
+
+		<!-- MAIN -->
+		<main>
+			<div class="page-head">
+				<div>
+					<h1 class="title">Auditoría</h1>
+					<ul class="breadcrumbs">
+						<li><a href="#">Seguridad</a></li>
+						<li class="divider">/</li>
+						<li><a href="#" class="active">Registro de acciones</a></li>
+					</ul>
+				</div>
+			</div>
+
+			<div class="content-data form-card incidencias-filtros">
+				<div class="head"><h3><i class='bx bx-filter-alt icon'></i> Filtros de Búsqueda</h3></div>
+				<div class="form-grid filtros-grid">
+					<div class="field">
+						<label for="f-usuario">Usuario</label>
+						<input type="text" id="f-usuario" placeholder="Nombre de usuario">
+					</div>
+					<div class="field">
+						<label for="f-accion">Acción</label>
+						<select id="f-accion"><option value="">Todas</option></select>
+					</div>
+					<div class="field">
+						<label for="f-entidad">Entidad</label>
+						<select id="f-entidad"><option value="">Todas</option></select>
+					</div>
+					<div class="field span-2">
+						<label>Fecha</label>
+						<div class="range-fields">
+							<input type="date" id="f-fecha-desde">
+							<span>-</span>
+							<input type="date" id="f-fecha-hasta">
+						</div>
+					</div>
+				</div>
+				<div class="filtros-actions">
+					<button type="button" class="btn-reset" id="btn-limpiar-filtros"><i class='bx bx-reset'></i> Limpiar</button>
+					<button type="button" class="btn-save" id="btn-buscar"><i class='bx bx-search'></i> Buscar</button>
+				</div>
+			</div>
+
+			<div class="content-data form-card">
+				<div class="head"><h3>Registro de acciones</h3></div>
+				<div class="data-table-wrap">
+					<table class="data-table">
+						<thead>
+							<tr>
+								<th>Fecha</th>
+								<th>Usuario</th>
+								<th>Acción</th>
+								<th>Entidad</th>
+								<th>Detalle</th>
+								<th>IP</th>
+							</tr>
+						</thead>
+						<tbody id="tabla-auditoria">
+							<tr><td colspan="6" class="table-empty">Cargando...</td></tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="table-footer">
+					<span id="paginacion-info">Mostrando 0 de 0 registros</span>
+					<div class="pagination-controls">
+						<select id="per-page">
+							<option value="25">25 por página</option>
+							<option value="50">50 por página</option>
+							<option value="100">100 por página</option>
+						</select>
+						<button type="button" id="btn-prev" class="btn-page"><i class='bx bx-chevron-left'></i></button>
+						<span id="paginas" class="paginas"></span>
+						<button type="button" id="btn-next" class="btn-page"><i class='bx bx-chevron-right'></i></button>
+					</div>
+				</div>
+			</div>
+		</main>
+		<!-- MAIN -->
+	</section>
+	<!-- NAVBAR -->
+
+	<script src="../statics/js/apexcharts.min.js"></script>
+	<script src="../statics/js/session.js"></script>
+	<script src="../statics/js/script_dashboard.js"></script>
+	<script src="../statics/js/api_auditoria_lista.js"></script>
+</body>
+</html>

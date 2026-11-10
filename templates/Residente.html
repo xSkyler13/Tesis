@@ -5,7 +5,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link href='../statics/css/boxicons.min.css' rel='stylesheet'>
 	<link rel="stylesheet" href="../statics/css/style_dashboard.css">
-	<title>Propietario</title>
+	<title>Residente</title>
 </head>
 <body>
 	
@@ -19,11 +19,11 @@
 		<main>
 			<div class="page-head">
 				<div>
-					<h1 class="title">Propietario</h1>
+					<h1 class="title">Residente</h1>
 					<ul class="breadcrumbs">
 						<li><a href="#">Registros</a></li>
 						<li class="divider">/</li>
-						<li><a href="#" class="active">Propietario</a></li>
+						<li><a href="#" class="active">Residente</a></li>
 					</ul>
 				</div>
 				<button type="button" class="btn-primary"><i class='bx bx-plus'></i> Nuevo Propietario</button>
@@ -32,6 +32,7 @@
 			<div id="mensaje"></div>
 			<form id="form-propietario" class="propietario-form">
 				<input type="hidden" id="foto_base64" name="foto_base64">
+				<input type="hidden" id="foto_perfil_base64" name="foto_perfil_base64">
 				<div class="form-row">
 					<div class="content-data form-card">
 						<div class="head"><h3><i class='bx bx-user icon'></i> Información Personal</h3></div>
@@ -82,14 +83,28 @@
 
 					<div class="content-data form-card photo-card">
 						<div class="head"><h3><i class='bx bx-image icon'></i> Fotografía</h3></div>
+						<!-- La vista previa es la foto de perfil del sistema: la subida si hay una,
+						     si no la tomada. El reconocimiento facial usa SIEMPRE la tomada con la cámara. -->
 						<div class="photo-upload">
 							<img id="preview-img" class="photo-preview" src="" alt="" style="display:none;">
 							<i class='bx bx-user-circle photo-placeholder' id="photo-placeholder"></i>
-							<p class="photo-label">Foto para reconocimiento facial</p>
-							<button type="button" class="btn-upload" id="btn-abrir-camara">
-								<i class='bx bx-camera'></i> Tomar foto
-							</button>
-							<div id="foto-label-status" class="photo-hint">Sin foto capturada</div>
+							<p class="photo-label">Foto de perfil</p>
+							<div class="photo-actions">
+								<button type="button" class="btn-upload" id="btn-abrir-camara">
+									<i class='bx bx-camera'></i> Tomar foto
+								</button>
+								<button type="button" class="btn-upload" id="btn-subir-perfil">
+									<i class='bx bx-upload'></i> Subir foto
+								</button>
+							</div>
+							<input type="file" id="perfil-input" accept="image/*" hidden>
+							<div id="foto-label-status" class="photo-hint">Reconocimiento facial: sin foto tomada</div>
+							<div id="perfil-label-status" class="photo-hint">Perfil: se usará la foto tomada</div>
+							<!-- Ley 29733: el rostro es un dato sensible; su uso requiere consentimiento expreso -->
+							<label class="consentimiento-biometrico">
+								<input type="checkbox" id="consentimiento_biometrico" name="consentimiento_biometrico" value="1">
+								El residente autoriza el uso de su rostro para el control de acceso por reconocimiento facial.
+							</label>
 						</div>
 					</div>
 				</div>
@@ -161,7 +176,7 @@
 
 				<div class="form-footer">
 					<button type="button" class="btn-cancel">Cancelar</button>
-					<button type="submit" class="btn-save"><i class='bx bx-save'></i> Guardar Propietario</button>
+					<button type="submit" class="btn-save"><i class='bx bx-save'></i> Guardar Residente</button>
 				</div>
 			</form>
 		</main>

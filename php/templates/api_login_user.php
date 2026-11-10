@@ -1,11 +1,7 @@
 <?php
 
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-
-require_once __DIR__ . "/../includes/config/database.php";
+require_once __DIR__ . "/../includes/bootstrap.php";
+requerir_interno();
 
 $usuario     = $_POST['usuario'] ?? '';
 $password    = $_POST['password'] ?? '';
@@ -26,7 +22,8 @@ SELECT
     id,
     usuario,
     password_hash,
-    rol_id
+    rol_id,
+    activo
 FROM
     usuarios
 WHERE
@@ -37,7 +34,10 @@ try {
     $stmt->execute([$usuario]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$user || !password_verify($password, $user['password_hash'])) {
+    // Un usuario desactivado recibe el mismo mensaje: no se revela que la cuenta existe
+    if (!$user || !password_verify($password, $user['password_hash']) || !$user['activo']) {
+        $motivo = ($user && !$user['activo']) ? ' (cuenta desactivada)' : '';
+        auditar('login_fallido', 'usuario', $user['id'] ?? null, "usuario: $usuario$motivo", $user['id'] ?? null);
         echo json_encode([
             "success" => false,
             "message" => "Credenciales inválidas"
@@ -45,6 +45,7 @@ try {
         exit;
     }
 
+    auditar('login', 'usuario', $user['id'], null, $user['id']);
     echo json_encode([
         "success" => true,
         "message" => "Login exitoso",
@@ -57,7 +58,7 @@ try {
 } catch (Exception $e) {
     echo json_encode([
         "success" => false,
-        "message" => "Error en la consulta: " . $e->getMessage()
+        "message" => "Error al iniciar sesión."
     ]);
 }
 ?>  

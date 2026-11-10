@@ -1,11 +1,7 @@
 <?php
 
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-
-require_once __DIR__ . "/../includes/config/database.php";
+require_once __DIR__ . "/../includes/bootstrap.php";
+requerir_usuario(ROLES_ADMIN);
 
 $nombre               = trim($_POST['nombre'] ?? '');
 $codigo               = trim($_POST['codigo'] ?? '');
@@ -61,7 +57,9 @@ try {
         $activo
     ]);
 
-    echo json_encode(["success" => true, "torre_id" => $conexion->lastInsertId()]);
+    $torreId = $conexion->lastInsertId();
+    auditar('crear', 'torre', $torreId);
+    echo json_encode(["success" => true, "torre_id" => $torreId]);
 
 } catch (PDOException $e) {
     if ($e->getCode() === '23000') {

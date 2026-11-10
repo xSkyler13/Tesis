@@ -1,10 +1,8 @@
 <?php
-// Residentes activos de un departamento (para elegir al anfitrión de una visita).
+// Residentes activos de un departamento (anfitrión de una visita y modal de ocupantes).
 
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-
-require_once __DIR__ . "/../includes/config/database.php";
+require_once __DIR__ . "/../includes/bootstrap.php";
+requerir_usuario(ROLES_PERSONAL);
 
 $departamento_id = $_GET['departamento_id'] ?? '';
 
@@ -14,7 +12,7 @@ if (empty($departamento_id)) {
 }
 
 $stmt = $conexion->prepare("
-    SELECT r.id, CONCAT(r.nombres, ' ', r.apellidos) AS nombre, r.celular, r.correo,
+    SELECT r.id, CONCAT(r.nombres, ' ', r.apellidos) AS nombre, r.dni, r.celular, r.telefono, r.correo, r.foto_perfil,
         tr.nombre AS tipo_nombre, rd.tipo_relacion
     FROM residentes r
     INNER JOIN residente_departamento rd ON rd.residente_id = r.id

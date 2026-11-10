@@ -1,82 +1,34 @@
 <?php
+// Crea un usuario del sistema (personal con acceso web). Solo administradores.
 
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
+require_once __DIR__ . "/../includes/bootstrap.php";
+requerir_usuario(ROLES_ADMIN);
 
-require_once __DIR__ . "/../includes/config/database.php";
+$usuario  = trim($_POST['usuario'] ?? '');
+$correo   = trim($_POST['correo'] ?? '');
+$password = $_POST['password'] ?? '';
+$rol      = (int) ($_POST['rol_id'] ?? 0);
 
-$usuario     = $_POST['usuario'] ?? '';
-$correo      = $_POST['correo'] ?? '';
-$password    = $_POST['password'] ?? '';
-$rol         = $_POST['rol_id'] ?? '';
-$foto_base64 = $_POST['foto_base64'] ?? '';
-
-$ruta_rostro = null;
-
-if (!empty($foto_base64)) {
-    $data = preg_replace('#^data:image/\w+;base64,#i', '', $foto_base64);
-    $data = base64_decode($data);
-    $nombre_archivo = $usuario . '.jpg';
-    $ruta_disco = __DIR__ . '/../../known_faces/' . $nombre_archivo;
-    file_put_contents($ruta_disco, $data);
-    $ruta_rostro = 'known_faces/' . $nombre_archivo;
+$error = validar_datos_usuario($usuario, $correo, $rol);
+if ($error === null && strlen($password) < 8) {
+    $error = "La contraseña debe tener al menos 8 caracteres";
 }
-
-if (
-    empty($usuario) ||
-    empty($correo) ||
-    empty($password) ||
-    empty($rol)
-) {
-    echo json_encode([
-        "success" => false,
-        "message" => "Campos obligatorios"
-    ]);
+if ($error !== null) {
+    echo json_encode(["success" => false, "message" => $error]);
     exit;
 }
 
-$passwordHash = password_hash(
-    $password,
-    PASSWORD_DEFAULT
-);
-
-$sql = "
-INSERT INTO usuarios
-(
-    usuario,
-    correo,
-    password_hash,
-    rol_id,
-    ruta_rostro
-)
-VALUES
-(
-    ?, ?, ?, ?, ?
-)
-";
-
 try {
+    $stmt = $conexion->prepare("INSERT INTO usuarios (usuario, correo, password_hash, rol_id) VALUES (?, ?, ?, ?)");
+    $stmt->execute([$usuario, $correo, password_hash($password, PASSWORD_DEFAULT), $rol]);
+    $nuevoId = $conexion->lastInsertId();
 
-    $stmt = $conexion->prepare($sql);
-
-    $stmt->execute([
-        $usuario,
-        $correo,
-        $passwordHash,
-        $rol,
-        $ruta_rostro
-    ]);
-
-    echo json_encode(["success" => true]);
-
+    auditar('crear', 'usuario', $nuevoId, "usuario: $usuario, rol: $rol");
+    echo json_encode(["success" => true, "id" => $nuevoId]);
 } catch (PDOException $e) {
-
     if ($e->getCode() === '23000') {
-        echo json_encode(["success" => false, "message" => "El usuario o correo ya existe."]);
+        echo json_encode(["success" => false, "message" => "El usuario o el correo ya existe."]);
     } else {
-        echo json_encode(["success" => false, "message" => "Error al registrar usuario."]);
+        echo json_encode(["success" => false, "message" => "Error al registrar el usuario."]);
     }
-
 }

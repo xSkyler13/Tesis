@@ -2,10 +2,8 @@
 // Devuelve los identificadores validos para reconocimiento facial:
 // nombre completo de residentes activos + usuario de cuentas de staff activas.
 
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-
-require_once __DIR__ . "/../includes/config/database.php";
+require_once __DIR__ . "/../includes/bootstrap.php";
+requerir_interno();
 
 $nombres = [];
 

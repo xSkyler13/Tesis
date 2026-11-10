@@ -664,6 +664,17 @@ main .status-icon.success {
 main .status-icon.warning {
 	background: #f39c12;
 }
+main .status-icon.info {
+	background: var(--blue);
+}
+main .access-link {
+	color: inherit;
+	text-decoration: none;
+	border-radius: 8px;
+}
+main .access-link:hover {
+	background: var(--grey);
+}
 main .access-row .avatar,
 main .visitor-item .avatar {
 	width: 36px;
@@ -1181,6 +1192,13 @@ main .photo-hint,
 	font-size: 11px;
 	color: var(--dark-grey);
 }
+.modal-box .edit-perfil { margin-bottom: 16px; }
+main .photo-actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 8px;
+}
 main .photo-placeholder,
 .modal-box .photo-placeholder {
 	width: 110px;
@@ -1329,6 +1347,62 @@ canvas { display: none; }
 }
 .modal-box-form .head { margin-bottom: 12px; }
 .modal-box-form .modal-actions { justify-content: flex-end; }
+
+/* Indicador de que el residente tiene más de un departamento (listado) */
+main .deptos-mas {
+	display: inline-block;
+	padding: 0 6px;
+	border-radius: 6px;
+	background: var(--light-blue);
+	color: var(--blue);
+	font-weight: 700;
+	cursor: help;
+}
+
+/* Departamentos de un residente (modal editar) */
+.deptos-residente {
+	margin-top: 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+.deptos-residente > label {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--dark);
+}
+.deptos-residente-lista {
+	list-style: none;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+.deptos-residente-lista li {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 8px 12px;
+	border: 1px solid var(--grey);
+	border-radius: 8px;
+	font-size: 14px;
+	color: var(--dark);
+}
+.deptos-residente-lista li > span:first-child { flex: 1; }
+.deptos-residente-asignar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+.deptos-residente-asignar select {
+	flex: 1 1 140px;
+	padding: 10px 14px;
+	border: 1px solid var(--grey);
+	border-radius: 8px;
+	font-size: 14px;
+	color: var(--dark);
+	background: var(--light);
+	font-family: inherit;
+}
 
 main .acciones-cell { display: flex; gap: 6px; }
 main .btn-eliminar:hover { color: var(--red, #d32f2f); }
@@ -2329,10 +2403,21 @@ html[data-theme="oscuro"] .skeleton::after {
 }
 
 @media screen and (max-width: 768px) {
-	#content {
+	/* Sidebar como panel deslizable: el contenido usa todo el ancho */
+	#content,
+	#sidebar.hide + #content {
 		position: relative;
-		width: calc(100% - 60px);
+		width: 100%;
+		left: 0;
 		transition: all .3s ease;
+	}
+	#sidebar.hide,
+	#sidebar.hide:hover {
+		max-width: 260px;
+		transform: translateX(-100%);
+	}
+	#sidebar:not(.hide) {
+		box-shadow: 4px 0 24px rgba(0, 0, 0, .25);
 	}
 	nav .nav-link,
 	nav .divider {
@@ -2387,4 +2472,328 @@ body.pagina-departamentos main .torre-tab-card {
 	main .detail-panel {
 		position: static;
 	}
+}
+
+/* VISITAS - fila recién actualizada */
+main .data-table tbody tr.fila-actualizada {
+	animation: fila-actualizada 2.5s ease;
+}
+@keyframes fila-actualizada {
+	0%, 40% { background: var(--light-blue); }
+	100% { background: transparent; }
+}
+main .visitas-filtros {
+	margin-bottom: 24px;
+}
+
+/* ===== INCIDENCIAS (intentos no reconocidos) ===== */
+main .incidencias-pendientes { font-size: 13px; }
+main .incidencias-filtros { margin-bottom: 24px; }
+main .incidencias-vacio {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+	padding: 32px 0;
+	text-align: center;
+}
+main .incidencias-vacio i { font-size: 40px; color: var(--dark-grey); }
+main .incidencias-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+	gap: 14px;
+	margin-bottom: 16px;
+}
+main .incidencias-grid > .table-empty { grid-column: 1 / -1; }
+main .incidencia-card {
+	display: flex;
+	flex-direction: column;
+	padding: 0;
+	border: 1px solid var(--grey);
+	border-radius: 10px;
+	background: var(--light);
+	overflow: hidden;
+	cursor: pointer;
+	text-align: left;
+	font-family: inherit;
+	transition: box-shadow .3s ease, border-color .3s ease;
+}
+main .incidencia-card:hover {
+	border-color: var(--blue);
+	box-shadow: 0 4px 14px rgba(0, 0, 0, .08);
+}
+main .incidencia-card img,
+main .incidencia-sin-foto {
+	width: 100%;
+	aspect-ratio: 4 / 3;
+	object-fit: cover;
+	background: var(--grey);
+}
+main .incidencia-sin-foto {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 40px;
+	color: var(--dark-grey);
+}
+main .incidencia-card-body {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 6px;
+	padding: 10px 12px;
+}
+main .incidencia-card-fecha {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--dark);
+}
+main .incidencia-card-nota {
+	font-size: 12px;
+	color: var(--dark-grey);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	max-width: 100%;
+}
+.modal-box .incidencia-detalle {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+	margin-bottom: 16px;
+}
+.modal-box .incidencia-foto-grande {
+	width: 280px;
+	max-width: 100%;
+	border-radius: 10px;
+	object-fit: cover;
+	background: var(--grey);
+}
+.modal-box .incidencia-datos {
+	flex: 1 1 240px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	font-size: 14px;
+	color: var(--dark);
+}
+.modal-box .incidencia-datos .label {
+	font-weight: 600;
+	color: var(--dark-grey);
+}
+
+/* ===== BAJA POR MUDANZA (modal en Residentes) ===== */
+.modal-box .baja-intro {
+	font-size: 13px;
+	color: var(--dark-grey);
+	margin-bottom: 8px;
+}
+.modal-box .baja-deptos {
+	list-style: none;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin: 12px 0 16px;
+}
+.modal-box .baja-deptos li {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 10px 12px;
+	border: 1px solid var(--grey);
+	border-radius: 8px;
+	font-size: 14px;
+	color: var(--dark);
+}
+.modal-box .baja-otros { font-size: 13px; color: var(--dark-grey); }
+.modal-box .baja-libre { font-size: 13px; color: #2ecc71; }
+.modal-box .baja-check {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 13px;
+	cursor: pointer;
+}
+
+/* Ocupación del departamento (tarjetas en Departamentos) */
+main .departamento-card .ocupacion {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 12px;
+	font-weight: 600;
+}
+main .departamento-card .ocupacion.libre { color: #2ecc71; }
+main .departamento-card .ocupacion.ocupado { color: var(--dark-grey); }
+
+/* Acciones solo para Administrador: se ocultan para otros roles (data-rol lo pone session.js).
+   Es solo visual; el servidor rechaza igual. */
+body:not([data-rol="1"]) .solo-admin { display: none !important; }
+
+/* Consentimiento de datos biométricos (registro de residente) */
+main .consentimiento-biometrico {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	max-width: 260px;
+	font-size: 12px;
+	text-align: left;
+	color: var(--dark);
+	cursor: pointer;
+}
+main .consentimiento-biometrico input { margin-top: 2px; }
+
+
+/* ===== CELULARES ===== */
+/* Fondo oscuro detrás del sidebar abierto en celular (lo crea script_dashboard.js) */
+.sidebar-fondo {
+	display: none;
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, .4);
+	z-index: 150;
+}
+body.sidebar-movil-abierto .sidebar-fondo { display: block; }
+
+@media screen and (max-width: 600px) {
+	nav {
+		padding: 0 12px;
+		grid-gap: 12px;
+	}
+	main {
+		padding: 16px 12px;
+	}
+	main .title { font-size: 22px; }
+	main .content-data { padding: 16px; }
+	main .content-data .head {
+		flex-wrap: wrap;
+		gap: 12px;
+		margin-bottom: 16px;
+	}
+	main .content-data .head h3 { font-size: 17px; }
+
+	/* Formularios y filtros en una sola columna */
+	main .form-grid,
+	main .form-grid.filtros-grid,
+	.modal-box .form-grid {
+		grid-template-columns: 1fr;
+	}
+	main .field.span-2,
+	.modal-box .field.span-2 {
+		grid-column: auto;
+	}
+	main .range-fields { flex-wrap: wrap; }
+	main .range-fields input { min-width: 0; }
+
+	/* Botones que ocupan el ancho y se acomodan en filas */
+	main .filtros-actions,
+	.modal-actions {
+		flex-wrap: wrap;
+	}
+	main .filtros-actions > button,
+	.modal-actions > button {
+		flex: 1 1 140px;
+	}
+	main .pagination-controls { flex-wrap: wrap; }
+	main .data-table { font-size: 13px; }
+
+	/* Modales casi a pantalla completa */
+	.modal-box,
+	.modal-box-form {
+		padding: 16px;
+		max-width: 100%;
+		width: calc(100vw - 24px);
+		max-height: 92vh;
+	}
+	.modal-box .incidencia-foto-grande { width: 100%; }
+	.deptos-residente-lista li { flex-wrap: wrap; }
+}
+
+/* ===== MODAL PROPIETARIO / RESIDENTES DEL DEPARTAMENTO ===== */
+.modal-box-form.modal-ocupantes { width: 560px; }
+.ocupantes-lista {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+.ocupante {
+	display: flex;
+	align-items: flex-start;
+	gap: 14px;
+	padding: 12px;
+	border: 1px solid var(--grey);
+	border-radius: 10px;
+}
+.ocupante-foto {
+	width: 64px;
+	height: 64px;
+	flex-shrink: 0;
+	border-radius: 50%;
+	object-fit: cover;
+}
+.ocupante-foto-placeholder {
+	font-size: 64px;
+	line-height: 1;
+	flex-shrink: 0;
+	color: var(--dark-grey);
+}
+.ocupante-datos { min-width: 0; flex: 1; }
+.ocupante-datos strong {
+	display: block;
+	font-size: 15px;
+	color: var(--dark);
+}
+.ocupante-datos strong em {
+	display: inline-block;
+	margin-left: 6px;
+	font-style: normal;
+	font-size: 10px;
+	vertical-align: middle;
+}
+.ocupante-tipo {
+	display: block;
+	font-size: 12px;
+	color: var(--dark-grey);
+	margin-bottom: 6px;
+}
+.ocupante-contacto {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-size: 13px;
+	color: var(--dark);
+}
+.ocupante-contacto li {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	overflow-wrap: anywhere;
+}
+.ocupante-contacto i { color: var(--dark-grey); font-size: 16px; }
+.ocupantes-vacio {
+	text-align: center;
+	padding: 24px 12px;
+	color: var(--dark-grey);
+}
+.ocupantes-vacio i { font-size: 56px; display: block; margin-bottom: 8px; }
+.ocupantes-vacio p { margin: 0; font-size: 14px; }
+.ocupantes-aviso {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0 0 12px;
+	padding: 10px 12px;
+	border-radius: 8px;
+	background: var(--grey);
+	color: var(--dark);
+	font-size: 13px;
+}
+@media (max-width: 480px) {
+	.ocupante-foto, .ocupante-foto-placeholder { width: 48px; height: 48px; font-size: 48px; }
 }

@@ -61,7 +61,7 @@ function iniciarDeteccion() {
 		try {
 			const fd = new FormData();
 			fd.append('image', dataUrl);
-			const res = await fetch('http://localhost:5001/detectar_rostro', { method: 'POST', body: fd });
+			const res = await fetch('/detectar_rostro', { method: 'POST', body: fd });
 			const data = await res.json();
 
 			if (!data.rostro) {
@@ -113,19 +113,17 @@ function capturarFoto(dataUrlPrecomputado) {
 	})();
 
 	base64Input.value        = dataUrl;
-	previewImg.src           = dataUrl;
-	previewImg.style.display = 'block';
-	photoPlaceholder.style.display = 'none';
+	actualizarPreview();
 	intentosUsados++;
 
 	const restantes = MAX_INTENTOS - intentosUsados;
 	if (restantes === 0) {
-		statusLabel.innerHTML  = '✅ Foto capturada — <span style="color:red">sin más intentos</span>';
+		statusLabel.innerHTML  = 'Reconocimiento facial: ✅ foto tomada — <span style="color:red">sin más intentos</span>';
 		btnAbrir.disabled      = true;
 		btnAbrir.style.opacity = '0.5';
 		btnAbrir.title         = 'Límite de intentos alcanzado';
 	} else {
-		statusLabel.textContent = `✅ Foto capturada (${restantes} intento${restantes > 1 ? 's' : ''} restante${restantes > 1 ? 's' : ''})`;
+		statusLabel.textContent = `Reconocimiento facial: ✅ foto tomada (${restantes} intento${restantes > 1 ? 's' : ''} restante${restantes > 1 ? 's' : ''})`;
 	}
 
 	faceidCheck.classList.add('mostrar');
@@ -136,12 +134,58 @@ function capturarFoto(dataUrlPrecomputado) {
 
 btnCapturar.addEventListener('click', () => capturarFoto());
 
+// ===== FOTO DE PERFIL (subida, solo para mostrar en el sistema) =====
+
+const perfilInput       = document.getElementById('perfil-input');
+const perfilBase64Input = document.getElementById('foto_perfil_base64');
+const perfilStatus      = document.getElementById('perfil-label-status');
+
+// La vista previa muestra la foto de perfil que verá el sistema: la subida si
+// hay una; si no, la tomada con la cámara.
+function actualizarPreview() {
+	const src = perfilBase64Input.value || base64Input.value;
+	if (src) {
+		previewImg.src = src;
+		previewImg.style.display = 'block';
+		photoPlaceholder.style.display = 'none';
+	} else {
+		previewImg.style.display = 'none';
+		photoPlaceholder.style.display = 'flex';
+	}
+}
+
+function limpiarFotoPerfil() {
+	perfilInput.value = '';
+	perfilBase64Input.value = '';
+	perfilStatus.textContent = 'Perfil: se usará la foto tomada';
+	actualizarPreview();
+}
+
+document.getElementById('btn-subir-perfil').addEventListener('click', () => perfilInput.click());
+
+perfilInput.addEventListener('change', () => {
+	const file = perfilInput.files[0];
+	if (!file) return;
+	if (file.size > 2 * 1024 * 1024) {
+		alert('La imagen supera los 2MB permitidos');
+		perfilInput.value = '';
+		return;
+	}
+	const reader = new FileReader();
+	reader.onload = () => {
+		perfilBase64Input.value = reader.result;
+		perfilStatus.textContent = 'Perfil: ✅ foto subida';
+		actualizarPreview();
+	};
+	reader.readAsDataURL(file);
+})
+
 document.getElementById('btn-cerrar-modal').addEventListener('click', cerrarModal);
 
 async function cargarTorres() {
 	const select = document.getElementById('torre_id');
 	try {
-		const response = await fetch('http://localhost:8000/templates/api_torres.php');
+		const response = await fetch('/api/api_torres.php');
 		const result = await response.json();
 
 		select.innerHTML = '<option value="">-- Seleccione --</option>';
@@ -175,7 +219,7 @@ document.getElementById('torre_id').addEventListener('change', async function ()
 
 	try {
 		const response = await fetch(
-			`http://localhost:8000/templates/api_departamentos.php?torre_id=${torreId}`
+			`/api/api_departamentos.php?torre_id=${torreId}`
 		);
 		const result = await response.json();
 
@@ -202,7 +246,7 @@ async function cargarTipoResidentes() {
 	const select = document.getElementById('tipo_residente_id');
 	try {
 		const response = await fetch(
-			'http://localhost:8000/templates/api_tipo_residentes.php'
+			'/api/api_tipo_residentes.php'
 		);
 		const result = await response.json();
 
@@ -224,10 +268,15 @@ cargarTipoResidentes();
 form.addEventListener('submit', async (e) => {
 	e.preventDefault();
 
+	if (base64Input.value !== '' && !document.getElementById('consentimiento_biometrico').checked) {
+		alert('Para registrar el rostro, el residente debe autorizar el uso de sus datos biométricos (marca la casilla de consentimiento).');
+		return;
+	}
+
 	if (base64Input.value === '') {
 		const confirmar = confirm(
 			'⚠️ No capturaste una foto.\n' +
-			'Sin foto, este propietario NO podrá usar el ingreso por reconocimiento facial.\n\n' +
+			'Sin foto, este residente NO podrá usar el ingreso por reconocimiento facial.\n\n' +
 			'¿Deseas continuar?'
 		);
 		if (!confirmar) return;
@@ -242,7 +291,7 @@ form.addEventListener('submit', async (e) => {
 
 	try {
 		const response = await fetch(
-			'http://localhost:8000/templates/api_register_residente.php',
+			'/api/api_register_residente.php',
 			{ method: 'POST', body: formData }
 		);
 
@@ -253,18 +302,17 @@ form.addEventListener('submit', async (e) => {
 				const flaskForm = new FormData();
 				flaskForm.append('name', nombreCompleto);
 				flaskForm.append('image', base64Input.value);
-				fetch('http://localhost:5001/save_face', { method: 'POST', body: flaskForm })
+				fetch('/save_face', { method: 'POST', body: flaskForm })
 					.catch(() => {});
 			}
 
-			mensaje.innerHTML = '<p class="success">✅ Propietario registrado correctamente.</p>';
+			mensaje.innerHTML = '<p class="success">✅ Residente registrado correctamente.</p>';
 			form.reset();
-			previewImg.style.display = 'none';
-			photoPlaceholder.style.display = 'flex';
 			base64Input.value = '';
-			statusLabel.textContent = 'Sin foto capturada';
+			statusLabel.textContent = 'Reconocimiento facial: sin foto tomada';
+			limpiarFotoPerfil();
 		} else {
-			mensaje.innerHTML = `<p class="error">❌ ${data.message}</p>`;
+			mensaje.innerHTML = `<p class="error">❌ ${esc(data.message)}</p>`;
 		}
 	} catch (error) {
 		console.error(error);

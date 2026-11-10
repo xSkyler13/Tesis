@@ -1,10 +1,7 @@
 <?php
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
 
-require_once __DIR__ . "/../includes/config/database.php";
+require_once __DIR__ . "/../includes/bootstrap.php";
+requerir_propio_o_admin($_POST['id'] ?? 0);
 
 $id                  = $_POST['id'] ?? '';
 $usuario             = trim($_POST['usuario'] ?? '');
@@ -20,8 +17,11 @@ if (empty($id) || empty($usuario)) {
 
 $foto_perfil = null;
 if (!empty($foto_base64)) {
-    $data = preg_replace('#^data:image/\w+;base64,#i', '', $foto_base64);
-    $data = base64_decode($data);
+    $data = decodificar_imagen($foto_base64);
+    if ($data === null) {
+        echo json_encode(["success" => false, "message" => "La foto no es una imagen válida"]);
+        exit;
+    }
     $carpeta = __DIR__ . '/../../statics/img/usuarios';
     if (!is_dir($carpeta)) {
         mkdir($carpeta, 0755, true);
@@ -47,8 +47,8 @@ if (!empty($password_nueva)) {
         echo json_encode(["success" => false, "message" => "La contraseña actual no es correcta"]);
         exit;
     }
-    if (strlen($password_nueva) < 6) {
-        echo json_encode(["success" => false, "message" => "La nueva contraseña debe tener al menos 6 caracteres"]);
+    if (strlen($password_nueva) < 8) {
+        echo json_encode(["success" => false, "message" => "La nueva contraseña debe tener al menos 8 caracteres"]);
         exit;
     }
     $nuevoHash = password_hash($password_nueva, PASSWORD_DEFAULT);
@@ -75,6 +75,7 @@ try {
     $stmt->execute([$id]);
     $fotoActual = $stmt->fetch()['foto_perfil'];
 
+    auditar('editar', 'usuario', $id, $nuevoHash ? 'incluye cambio de contraseña' : null);
     echo json_encode(["success" => true, "usuario" => $usuario, "foto_perfil" => $fotoActual]);
 } catch (PDOException $e) {
     if ($e->getCode() === '23000') {

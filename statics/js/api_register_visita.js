@@ -7,7 +7,7 @@ let residentesCache = [];
 
 async function cargarTorres() {
 	try {
-		const response = await fetch('http://localhost:8000/templates/api_torres.php');
+		const response = await fetch('/api/api_torres.php');
 		const torres = await response.json();
 		torreSelect.innerHTML = '<option value="">Seleccione una torre</option>';
 		torres.forEach(t => {
@@ -36,7 +36,7 @@ torreSelect.addEventListener('change', async () => {
 	}
 
 	try {
-		const response = await fetch(`http://localhost:8000/templates/api_departamentos.php?torre_id=${torreSelect.value}`);
+		const response = await fetch(`/api/api_departamentos.php?torre_id=${torreSelect.value}`);
 		const deptos = await response.json();
 		departamentoSelect.innerHTML = '<option value="">Seleccione un departamento</option>';
 		deptos.forEach(d => {
@@ -63,7 +63,7 @@ departamentoSelect.addEventListener('change', async () => {
 	}
 
 	try {
-		const response = await fetch(`http://localhost:8000/templates/api_residentes_por_departamento.php?departamento_id=${departamentoSelect.value}`);
+		const response = await fetch(`/api/api_residentes_por_departamento.php?departamento_id=${departamentoSelect.value}`);
 		residentesCache = await response.json();
 		residenteSelect.innerHTML = '<option value="">Seleccione un residente</option>';
 		residentesCache.forEach(r => {
@@ -183,7 +183,7 @@ async function cargarVisitasRecientes() {
 	const lista = document.getElementById('lista-visitas-recientes');
 	lista.innerHTML = skeletonListaItems('access-item');
 	try {
-		const response = await fetch('http://localhost:8000/templates/api_visitas_recientes.php');
+		const response = await fetch('/api/api_visitas_recientes.php');
 		const visitas = await response.json();
 
 		if (visitas.length === 0) {
@@ -196,7 +196,7 @@ async function cargarVisitasRecientes() {
 				<div class="access-row">
 					<span class="avatar avatar-placeholder"><i class='bx bx-user'></i></span>
 					<div class="access-info">
-						<p class="access-name">${v.nombres_visitante}</p>
+						<p class="access-name">${esc(v.nombres_visitante)}</p>
 						<span class="access-sub">${formatFechaHora(v.fecha_visita, v.hora_ingreso)}</span>
 					</div>
 					${badgeVisita(v.estado)}
@@ -229,7 +229,7 @@ form.addEventListener('submit', async (e) => {
 	}
 
 	try {
-		const response = await fetch('http://localhost:8000/templates/api_visita_registrar.php', {
+		const response = await fetch('/api/api_visita_registrar.php', {
 			method: 'POST',
 			body: formData
 		});
@@ -249,7 +249,7 @@ form.addEventListener('submit', async (e) => {
 			actualizarPreview();
 			cargarVisitasRecientes();
 		} else {
-			mensaje.innerHTML = `<p class="error">❌ ${data.message}</p>`;
+			mensaje.innerHTML = `<p class="error">❌ ${esc(data.message)}</p>`;
 		}
 	} catch (error) {
 		console.error(error);

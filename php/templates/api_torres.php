@@ -1,9 +1,7 @@
 <?php
 
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-
-require_once __DIR__ . "/../includes/config/database.php";
+require_once __DIR__ . "/../includes/bootstrap.php";
+requerir_usuario(ROLES_PERSONAL);
 
 $sql = "SELECT * FROM torres WHERE activo = 1 ORDER BY nombre";
 

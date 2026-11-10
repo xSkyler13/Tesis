@@ -1,10 +1,10 @@
 <?php
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
+// Registra un intento de acceso de una persona no reconocida (lo llama Flask).
+// La foto queda en statics/img/no_reconocidos/, visible solo con sesión, para
+// revisarla desde la página de Incidencias.
 
-require_once __DIR__ . "/../includes/config/database.php";
+require_once __DIR__ . "/../includes/bootstrap.php";
+requerir_interno();
 
 $foto_base64 = $_POST['foto_base64'] ?? '';
 
@@ -13,17 +13,20 @@ if (empty($foto_base64)) {
     exit;
 }
 
-$fecha = date('Y-m-d_H-i-s');
-$nombre_archivo = "desconocido_" . $fecha . ".jpg";
-$ruta_disco = __DIR__ . "/../unknown_faces/" . $nombre_archivo;
+$data = decodificar_imagen($foto_base64);
+if ($data === null) {
+    echo json_encode(["success" => false, "message" => "Imagen inválida"]);
+    exit;
+}
 
-$data = preg_replace('#^data:image/\w+;base64,#i', '', $foto_base64);
-$data = base64_decode($data);
-file_put_contents($ruta_disco, $data);
-
-$ruta_db = "unknown_faces/" . $nombre_archivo;
+$carpeta = __DIR__ . '/../../statics/img/no_reconocidos';
+if (!is_dir($carpeta)) {
+    mkdir($carpeta, 0755, true);
+}
+$nombre_archivo = 'desconocido_' . date('Y-m-d_H-i-s') . '_' . uniqid() . '.jpg';
+file_put_contents($carpeta . '/' . $nombre_archivo, $data);
 
 $stmt = $conexion->prepare("INSERT INTO intentos_no_reconocidos (foto_path, fecha_hora) VALUES (?, NOW())");
-$stmt->execute([$ruta_db]);
+$stmt->execute(['statics/img/no_reconocidos/' . $nombre_archivo]);
 
-echo json_encode(["success" => true]);
+echo json_encode(["success" => true, "id" => $conexion->lastInsertId()]);

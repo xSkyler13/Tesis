@@ -2,10 +2,8 @@
 // Listado paginado y filtrable de departamentos, con torre y propietario
 // (titular activo) resueltos por JOIN, más resumen global.
 
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-
-require_once __DIR__ . "/../includes/config/database.php";
+require_once __DIR__ . "/../includes/bootstrap.php";
+requerir_usuario(ROLES_PERSONAL);
 
 $torre_id      = $_GET['torre_id'] ?? '';
 $piso          = $_GET['piso'] ?? '';
@@ -18,6 +16,7 @@ $area_hasta    = $_GET['area_hasta'] ?? '';
 $fecha_desde   = $_GET['fecha_desde'] ?? '';
 $fecha_hasta   = $_GET['fecha_hasta'] ?? '';
 $buscar        = $_GET['buscar'] ?? '';
+$ocupacion     = $_GET['ocupacion'] ?? '';
 $page          = max(1, (int) ($_GET['page'] ?? 1));
 $per_page      = max(1, min(100, (int) ($_GET['per_page'] ?? 10)));
 
@@ -39,6 +38,12 @@ if (!empty($estado)) {
 if (!empty($tipo)) {
     $where[] = "d.tipo = ?";
     $params[] = $tipo;
+}
+// Libre = nadie vive ahí (ningún vínculo activo); Ocupado = al menos uno
+if ($ocupacion === 'Libre' || $ocupacion === 'Ocupado') {
+    $where[] = ($ocupacion === 'Libre' ? 'NOT ' : '') . "EXISTS (
+        SELECT 1 FROM residente_departamento oc WHERE oc.departamento_id = d.id AND oc.activo = 1
+    )";
 }
 if ($numero_desde !== '') {
     $where[] = "CAST(d.numero AS UNSIGNED) >= ?";
@@ -94,7 +99,8 @@ SELECT
     d.id, d.numero, d.tipo, d.piso, d.area, d.habitaciones, d.banos,
     d.estacionamiento, d.estado, d.codigo_interno, d.fecha_creacion,
     t.nombre AS torre_nombre,
-    CONCAT(r.nombres, ' ', r.apellidos) AS propietario
+    CONCAT(r.nombres, ' ', r.apellidos) AS propietario,
+    (SELECT COUNT(*) FROM residente_departamento oc WHERE oc.departamento_id = d.id AND oc.activo = 1) AS ocupantes
 $baseSql
 ORDER BY t.nombre, CAST(d.numero AS UNSIGNED)
 LIMIT $per_page OFFSET $offset

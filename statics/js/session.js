@@ -1,11 +1,33 @@
-// Roles permitidos por página: null = cualquier rol autenticado
+// La sesión real y los permisos los valida el servidor (Flask). Lo guardado en
+// localStorage solo se usa para mostrar el nombre en pantalla.
 const PAGE_ROLES = {
-    '/home':        [1],
-    '/asistencia':  [3],
-    '/inicio':      [2],
-    '/register':    [1],
-    '/users':       [1],
+    '/home':        [1, 2],
+    '/usuarios':    [1],
 };
+
+// Escapa texto antes de insertarlo con innerHTML (también dentro de atributos)
+function esc(texto) {
+	return String(texto ?? '').replace(/[&<>"']/g, c => ({
+		'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+	})[c]);
+}
+
+// Si la sesión del servidor expiró, cualquier llamada a la API devuelve 401
+const fetchOriginal = window.fetch.bind(window);
+window.fetch = async (...args) => {
+	const response = await fetchOriginal(...args);
+	if (response.status === 401) {
+		limpiarSesionLocal();
+		window.location.href = '/login';
+	}
+	return response;
+};
+
+function limpiarSesionLocal() {
+    localStorage.removeItem('usuario_id');
+    localStorage.removeItem('usuario');
+    localStorage.removeItem('rol_id');
+}
 
 function getSession() {
     const usuario = localStorage.getItem('usuario');
@@ -14,10 +36,13 @@ function getSession() {
     return { usuario, rol_id };
 }
 
-function logout() {
-    localStorage.removeItem('usuario_id');
-    localStorage.removeItem('usuario');
-    localStorage.removeItem('rol_id');
+async function logout() {
+    try {
+        await fetch('/logout', { method: 'POST' });
+    } catch (error) {
+        console.error(error);
+    }
+    limpiarSesionLocal();
     window.location.href = '/login';
 }
 
@@ -34,6 +59,10 @@ function checkSession() {
         window.location.href = '/login';
         return;
     }
+
+    // Los elementos .solo-admin (botones de crear/editar/eliminar) se ocultan
+    // por CSS para otros roles. Es solo visual: el servidor rechaza igual.
+    document.body.dataset.rol = session.rol_id;
 
     // Mostrar nombre de usuario si existe el elemento
     const el = document.getElementById('session-usuario');
@@ -59,7 +88,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 	if (!usuarioId) return;
 
 	try {
-		const response = await fetch(`http://localhost:8000/templates/api_usuario_detalle.php?id=${usuarioId}`);
+		const response = await fetch(`/api/api_usuario_detalle.php?id=${usuarioId}`);
 		const result = await response.json();
 		if (result.success) mostrarFotoNav(result.usuario.foto_perfil);
 	} catch (error) {
@@ -82,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	const fotoBase64Input = document.getElementById('cuenta-foto-base64');
 
 	function mostrarMensajeCuenta(texto, tipo) {
-		mensajeCuenta.innerHTML = `<p class="${tipo}">${tipo === 'error' ? '❌' : '✅'} ${texto}</p>`;
+		mensajeCuenta.innerHTML = `<p class="${tipo}">${tipo === 'error' ? '❌' : '✅'} ${esc(texto)}</p>`;
 	}
 
 	function setFotoPreview(src) {
@@ -114,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 
 		try {
-			const response = await fetch(`http://localhost:8000/templates/api_usuario_detalle.php?id=${usuarioId}`);
+			const response = await fetch(`/api/api_usuario_detalle.php?id=${usuarioId}`);
 			const result = await response.json();
 
 			if (!result.success) {
@@ -162,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 		try {
 			const formData = new FormData(formCuenta);
-			const response = await fetch('http://localhost:8000/templates/api_usuario_editar.php', {
+			const response = await fetch('/api/api_usuario_editar.php', {
 				method: 'POST',
 				body: formData
 			});

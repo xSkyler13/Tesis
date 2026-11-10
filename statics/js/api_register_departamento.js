@@ -26,7 +26,7 @@ const numeroInput       = document.getElementById('numero');
 
 async function cargarTorres() {
 	try {
-		const response = await fetch('http://localhost:8000/templates/api_torres.php');
+		const response = await fetch('/api/api_torres.php');
 		torres = await response.json();
 
 		torreSelect.innerHTML = '<option value="">-- Seleccione --</option>';
@@ -60,16 +60,16 @@ async function validarCapacidad() {
 	if (!torre.numero_departamentos) return;
 
 	try {
-		const response = await fetch(`http://localhost:8000/templates/api_departamentos.php?torre_id=${torreId}`);
+		const response = await fetch(`/api/api_departamentos.php?torre_id=${torreId}`);
 		const deptos = await response.json();
 		const actual = deptos.length;
 		const max = parseInt(torre.numero_departamentos);
 
 		if (actual >= max) {
-			capacidadAviso.innerHTML = `<p class="error">⚠️ La ${torre.nombre} ya alcanzó su capacidad máxima (${actual}/${max} departamentos). No se pueden registrar más.</p>`;
+			capacidadAviso.innerHTML = `<p class="error">⚠️ La ${esc(torre.nombre)} ya alcanzó su capacidad máxima (${actual}/${max} departamentos). No se pueden registrar más.</p>`;
 			btnGuardar.disabled = true;
 		} else {
-			capacidadAviso.innerHTML = `<p class="success">${torre.nombre}: ${actual}/${max} departamentos registrados.</p>`;
+			capacidadAviso.innerHTML = `<p class="success">${esc(torre.nombre)}: ${actual}/${max} departamentos registrados.</p>`;
 		}
 	} catch (error) {
 		console.error(error);
@@ -91,7 +91,7 @@ pisoInput.addEventListener('input', () => {
 async function cargarPropietarios() {
 	const select = document.getElementById('propietario_id');
 	try {
-		const response = await fetch('http://localhost:8000/templates/api_residentes.php');
+		const response = await fetch('/api/api_residentes.php');
 		const result = await response.json();
 
 		select.innerHTML = '<option value="">-- Sin asignar --</option>';
@@ -161,13 +161,13 @@ form.addEventListener('submit', async (e) => {
 
 	try {
 		const response = await fetch(
-			'http://localhost:8000/templates/api_register_departamento.php',
+			'/api/api_register_departamento.php',
 			{ method: 'POST', body: formData }
 		);
 		const data = await response.json();
 
 		if (data.success) {
-			mensaje.innerHTML = `<p class="success">✅ Departamento registrado correctamente (${data.codigo_interno}).</p>`;
+			mensaje.innerHTML = `<p class="success">✅ Departamento registrado correctamente (${esc(data.codigo_interno)}).</p>`;
 			form.reset();
 			document.getElementById('observaciones-count').textContent = '0';
 			document.getElementById('notas_internas-count').textContent = '0';
@@ -177,7 +177,7 @@ form.addEventListener('submit', async (e) => {
 			capacidadAviso.innerHTML = '';
 			actualizarPreview();
 		} else {
-			mensaje.innerHTML = `<p class="error">❌ ${data.message}</p>`;
+			mensaje.innerHTML = `<p class="error">❌ ${esc(data.message)}</p>`;
 		}
 	} catch (error) {
 		console.error(error);

@@ -16,7 +16,7 @@ function valorDe(id) {
 
 function badgeEstado(estado) {
 	const clase = estado === 'Activo' ? 'success' : estado === 'Mantenimiento' ? 'warning' : 'danger';
-	return `<span class="badge-status ${clase}">${estado}</span>`;
+	return `<span class="badge-status ${clase}">${esc(estado)}</span>`;
 }
 
 function claseEstado(estado) {
@@ -27,7 +27,7 @@ function claseEstado(estado) {
 
 async function cargarTorres() {
 	try {
-		const response = await fetch('http://localhost:8000/templates/api_torres.php');
+		const response = await fetch('/api/api_torres.php');
 		torresCache = await response.json();
 		torreSelect.innerHTML = '<option value="">Todos</option>';
 		torresCache.forEach(t => {
@@ -43,7 +43,7 @@ async function cargarTorres() {
 
 async function cargarConteoPorTorre() {
 	try {
-		const response = await fetch('http://localhost:8000/templates/api_departamentos_lista.php?per_page=100');
+		const response = await fetch('/api/api_departamentos_lista.php?per_page=100');
 		const result = await response.json();
 		conteoPorTorre = {};
 		result.data.forEach(d => {
@@ -66,7 +66,7 @@ function renderTorreTabs() {
 		<button type="button" class="torre-tab-card${String(t.id) === String(torreSeleccionada) ? ' activo' : ''}" data-id="${t.id}">
 			<span class="torre-tab-icon"><i class='bx bxs-buildings'></i></span>
 			<div>
-				<strong>${t.nombre}</strong>
+				<strong>${esc(t.nombre)}</strong>
 				<span>${conteoPorTorre[t.nombre] ?? 0} departamentos</span>
 			</div>
 		</button>
@@ -91,6 +91,7 @@ function construirQuery() {
 	if (torreSeleccionada) params.set('torre_id', torreSeleccionada);
 	if (valorDe('f-estado')) params.set('estado', valorDe('f-estado'));
 	if (valorDe('f-tipo')) params.set('tipo', valorDe('f-tipo'));
+	if (valorDe('f-ocupacion')) params.set('ocupacion', valorDe('f-ocupacion'));
 	if (valorDe('f-fecha-desde')) params.set('fecha_desde', valorDe('f-fecha-desde'));
 	if (valorDe('f-fecha-hasta')) params.set('fecha_hasta', valorDe('f-fecha-hasta'));
 	if (valorDe('f-buscar')) params.set('buscar', valorDe('f-buscar'));
@@ -114,7 +115,7 @@ document.getElementById('f-buscar').addEventListener('keyup', (e) => {
 })
 
 document.getElementById('btn-limpiar-filtros').addEventListener('click', () => {
-	const ids = ['f-estado', 'f-tipo', 'f-fecha-desde', 'f-fecha-hasta', 'f-buscar'];
+	const ids = ['f-estado', 'f-tipo', 'f-ocupacion', 'f-fecha-desde', 'f-fecha-hasta', 'f-buscar'];
 	ids.forEach(id => {
 		const el = document.getElementById(id);
 		if (el) el.value = '';
@@ -189,13 +190,16 @@ function renderGrid() {
 			<div class="departamento-card${String(d.id) === String(departamentoSeleccionado) ? ' activo' : ''}" data-id="${d.id}">
 				<div class="departamento-card-head">
 					<span class="departamento-card-icon"><i class='bx bxs-buildings'></i></span>
-					<span class="departamento-card-numero">${d.numero}</span>
+					<span class="departamento-card-numero">${esc(d.numero)}</span>
 					${badgeEstado(d.estado)}
 				</div>
+				${Number(d.ocupantes) > 0
+					? `<span class="ocupacion ocupado" title="${esc(d.ocupantes)} ocupante(s)"><i class='bx bxs-user'></i> Ocupado</span>`
+					: `<span class="ocupacion libre"><i class='bx bx-door-open'></i> Libre</span>`}
 				<p class="departamento-card-area">${d.area ? parseFloat(d.area).toFixed(2) + ' m²' : 'Área no registrada'}</p>
 				<div class="departamento-card-meta">
-					<span><i class='bx bx-bed'></i> ${d.habitaciones ?? '-'}</span>
-					<span><i class='bx bx-bath'></i> ${d.banos ?? '-'}</span>
+					<span><i class='bx bx-bed'></i> ${esc(d.habitaciones ?? '-')}</span>
+					<span><i class='bx bx-bath'></i> ${esc(d.banos ?? '-')}</span>
 					<span><i class='bx bx-car'></i> ${d.estacionamiento ? '1' : '0'}</span>
 				</div>
 			</div>
@@ -220,7 +224,7 @@ async function cargarDepartamentos() {
 
 	try {
 		const query = construirQuery();
-		const response = await fetch(`http://localhost:8000/templates/api_departamentos_lista.php?${query}`);
+		const response = await fetch(`/api/api_departamentos_lista.php?${query}`);
 		const result = await response.json();
 
 		departamentosPiso = result.data;
@@ -301,8 +305,8 @@ function renderDetalle(d, residentes) {
 			<li>
 				<i class='bx bxs-user-circle'></i>
 				<div>
-					<strong>${r.nombre} <em class="badge-status ${r.tipo_relacion === 'Titular' ? 'success' : 'info'}">${r.tipo_relacion === 'Titular' ? 'Propietario' : r.tipo_nombre}</em></strong>
-					<span>${r.celular || '--'} · ${r.correo || '--'}</span>
+					<strong>${esc(r.nombre)} <em class="badge-status ${r.tipo_relacion === 'Titular' ? 'success' : 'info'}">${r.tipo_relacion === 'Titular' ? 'Propietario' : esc(r.tipo_nombre)}</em></strong>
+					<span>${esc(r.celular) || '--'} · ${esc(r.correo) || '--'}</span>
 				</div>
 			</li>
 		`).join('');
@@ -324,15 +328,19 @@ function renderDetalle(d, residentes) {
 	badgeChecklist.className = 'badge-status checklist-badge ' + (completo ? 'success' : 'warning');
 }
 
+// Último detalle cargado: lo reutiliza el modal de ocupantes
+let detalleActual = null;
+
 async function seleccionarDepartamento(id) {
 	departamentoSeleccionado = id;
+	detalleActual = null;
 	renderGrid();
 	mostrarDetallePanelCargando();
 
 	try {
 		const [detalleRes, residentesRes] = await Promise.all([
-			fetch(`http://localhost:8000/templates/api_departamento_detalle.php?id=${id}`),
-			fetch(`http://localhost:8000/templates/api_residentes_por_departamento.php?departamento_id=${id}`),
+			fetch(`/api/api_departamento_detalle.php?id=${id}`),
+			fetch(`/api/api_residentes_por_departamento.php?departamento_id=${id}`),
 		]);
 		const detalle = await detalleRes.json();
 		const residentes = await residentesRes.json();
@@ -342,6 +350,7 @@ async function seleccionarDepartamento(id) {
 			return;
 		}
 
+		detalleActual = { departamento: detalle.departamento, residentes };
 		renderDetalle(detalle.departamento, residentes);
 	} catch (error) {
 		console.error(error);
@@ -369,6 +378,70 @@ document.getElementById('btn-detalle-eliminar').addEventListener('click', () => 
 	abrirModalEliminar(departamentoSeleccionado, d ? d.numero : '');
 })
 
+// ===== MODAL PROPIETARIO / RESIDENTES =====
+
+const modalOcupantes = document.getElementById('modal-ocupantes');
+
+function tarjetaOcupante(r) {
+	const esTitular = r.tipo_relacion === 'Titular';
+	const foto = r.foto_perfil
+		? `<img class="ocupante-foto" src="/${esc(r.foto_perfil)}" alt="">`
+		: `<i class='bx bxs-user-circle ocupante-foto-placeholder'></i>`;
+	return `
+		<li class="ocupante">
+			${foto}
+			<div class="ocupante-datos">
+				<strong>${esc(r.nombre)}
+					<em class="badge-status ${esTitular ? 'success' : 'info'}">${esTitular ? 'Propietario' : esc(r.tipo_relacion)}</em>
+				</strong>
+				<span class="ocupante-tipo">${esc(r.tipo_nombre)}</span>
+				<ul class="ocupante-contacto">
+					<li><i class='bx bx-id-card'></i> ${esc(r.dni) || '--'}</li>
+					<li><i class='bx bx-phone'></i> ${esc(r.celular || r.telefono) || '--'}</li>
+					<li><i class='bx bx-envelope'></i> ${esc(r.correo) || '--'}</li>
+				</ul>
+			</div>
+		</li>
+	`;
+}
+
+function abrirModalOcupantes() {
+	if (!detalleActual) return;
+	const { departamento, residentes } = detalleActual;
+	document.getElementById('ocupantes-numero').textContent = departamento.numero;
+	const body = document.getElementById('ocupantes-body');
+
+	if (residentes.length === 0) {
+		body.innerHTML = `
+			<div class="ocupantes-vacio">
+				<i class='bx bx-user-x'></i>
+				<p>Este departamento aún no tiene un propietario ni residentes asignados.</p>
+			</div>
+		`;
+	} else {
+		const titulares = residentes.filter(r => r.tipo_relacion === 'Titular');
+		const otros = residentes.filter(r => r.tipo_relacion !== 'Titular');
+		const avisoSinTitular = titulares.length === 0
+			? '<p class="ocupantes-aviso"><i class=\'bx bx-info-circle\'></i> Aún no hay un propietario asignado a este departamento.</p>'
+			: '';
+		body.innerHTML = `
+			${avisoSinTitular}
+			<ul class="ocupantes-lista">${titulares.concat(otros).map(tarjetaOcupante).join('')}</ul>
+		`;
+	}
+	modalOcupantes.classList.add('activo');
+}
+
+function cerrarModalOcupantes() {
+	modalOcupantes.classList.remove('activo');
+}
+
+document.getElementById('btn-detalle-residentes').addEventListener('click', abrirModalOcupantes);
+document.getElementById('btn-cerrar-ocupantes').addEventListener('click', cerrarModalOcupantes);
+modalOcupantes.addEventListener('click', (e) => {
+	if (e.target === modalOcupantes) cerrarModalOcupantes();
+})
+
 // ===== MODAL EDITAR =====
 
 const modalEditar = document.getElementById('modal-editar');
@@ -379,7 +452,7 @@ const editPropietarioSelect = document.getElementById('edit-propietario_id');
 async function cargarTorresEnModal() {
 	if (editTorreSelect.dataset.cargado) return;
 	try {
-		const response = await fetch('http://localhost:8000/templates/api_torres.php');
+		const response = await fetch('/api/api_torres.php');
 		const torres = await response.json();
 		editTorreSelect.innerHTML = '';
 		torres.forEach(t => {
@@ -397,7 +470,7 @@ async function cargarTorresEnModal() {
 async function cargarPropietariosEnModal() {
 	if (editPropietarioSelect.dataset.cargado) return;
 	try {
-		const response = await fetch('http://localhost:8000/templates/api_residentes.php');
+		const response = await fetch('/api/api_residentes.php');
 		const residentes = await response.json();
 		editPropietarioSelect.innerHTML = '<option value="">Sin asignar</option>';
 		residentes.forEach(r => {
@@ -414,7 +487,7 @@ async function cargarPropietariosEnModal() {
 
 function mostrarMensajeModal(texto, tipo) {
 	const el = document.getElementById('modal-editar-mensaje');
-	el.innerHTML = `<p class="${tipo}">${tipo === 'error' ? '❌' : '✅'} ${texto}</p>`;
+	el.innerHTML = `<p class="${tipo}">${tipo === 'error' ? '❌' : '✅'} ${esc(texto)}</p>`;
 }
 
 function cerrarModalEditar() {
@@ -427,7 +500,7 @@ async function abrirModalEditar(id) {
 	await Promise.all([cargarTorresEnModal(), cargarPropietariosEnModal()]);
 
 	try {
-		const response = await fetch(`http://localhost:8000/templates/api_departamento_detalle.php?id=${id}`);
+		const response = await fetch(`/api/api_departamento_detalle.php?id=${id}`);
 		const result = await response.json();
 
 		if (!result.success) {
@@ -468,7 +541,7 @@ formEditar.addEventListener('submit', async (e) => {
 	try {
 		const formData = new FormData(formEditar);
 		const idEditado = document.getElementById('edit-id').value;
-		const response = await fetch('http://localhost:8000/templates/api_departamento_editar.php', {
+		const response = await fetch('/api/api_departamento_editar.php', {
 			method: 'POST',
 			body: formData
 		});
@@ -516,7 +589,7 @@ document.getElementById('btn-confirmar-eliminar').addEventListener('click', asyn
 	try {
 		const formData = new FormData();
 		formData.set('id', idAEliminar);
-		const response = await fetch('http://localhost:8000/templates/api_departamento_eliminar.php', {
+		const response = await fetch('/api/api_departamento_eliminar.php', {
 			method: 'POST',
 			body: formData
 		});
@@ -546,9 +619,10 @@ document.getElementById('btn-exportar').addEventListener('click', () => {
 	if (pisoSelect.value) params.set('piso', pisoSelect.value);
 	if (valorDe('f-estado')) params.set('estado', valorDe('f-estado'));
 	if (valorDe('f-tipo')) params.set('tipo', valorDe('f-tipo'));
+	if (valorDe('f-ocupacion')) params.set('ocupacion', valorDe('f-ocupacion'));
 	if (valorDe('f-fecha-desde')) params.set('fecha_desde', valorDe('f-fecha-desde'));
 	if (valorDe('f-fecha-hasta')) params.set('fecha_hasta', valorDe('f-fecha-hasta'));
 	if (valorDe('f-buscar')) params.set('buscar', valorDe('f-buscar'));
 
-	window.location.href = `http://localhost:8000/templates/api_departamentos_exportar.php?${params.toString()}`;
+	window.location.href = `/api/api_departamentos_exportar.php?${params.toString()}`;
 })
